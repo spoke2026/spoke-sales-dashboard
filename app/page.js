@@ -47,30 +47,30 @@ function paceArray(target, days) {
 }
 
 // ── TODAY LINE PLUGIN ────────────────────────────────────────────────────────
-const todayLinePlugin = (daysGone) => ({
+const todayLinePlugin = (daysGone, daysInMonth) => ({
   id: 'todayLine',
   afterDatasetsDraw(chart) {
     const { ctx, chartArea, scales } = chart
     if (!chartArea || daysGone < 1) return
-    const idx = daysGone - 1
-    const x = scales.x.getPixelForValue(idx)
+    // Position today line proportionally across full month width
+    const todayX = chartArea.left + ((daysGone - 1) / (daysInMonth - 1)) * (chartArea.right - chartArea.left)
     ctx.save()
     ctx.setLineDash([4, 4])
     ctx.strokeStyle = 'rgba(64,81,79,.4)'
     ctx.lineWidth = 1.5
     ctx.beginPath()
-    ctx.moveTo(x, chartArea.top + 6)
-    ctx.lineTo(x, chartArea.bottom)
+    ctx.moveTo(todayX, chartArea.top + 6)
+    ctx.lineTo(todayX, chartArea.bottom)
     ctx.stroke()
     ctx.setLineDash([])
     ctx.fillStyle = '#40514F'
     ctx.beginPath()
-    ctx.roundRect(x - 18, chartArea.top, 36, 18, 3)
+    ctx.roundRect(todayX - 18, chartArea.top, 36, 18, 3)
     ctx.fill()
     ctx.fillStyle = '#fff'
     ctx.font = '9px DM Sans, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText('Today', x, chartArea.top + 13)
+    ctx.fillText('Today', todayX, chartArea.top + 13)
     ctx.restore()
   },
 })
@@ -261,7 +261,7 @@ export default function Dashboard() {
             </div>
             <div className={styles.mainChartWrap}>
               <Line
-                plugins={[todayLinePlugin(daysGone)]}
+                plugins={[todayLinePlugin(daysGone, daysInMonth)]}
                 data={{
                   labels,
                   datasets: [
@@ -322,7 +322,7 @@ export default function Dashboard() {
 >
             <div className={styles.smallChartWrap}>
               <Line
-                plugins={[todayLinePlugin(daysGone)]}
+                plugins={[todayLinePlugin(daysGone, daysInMonth)]}
                 data={{
                   labels,
                   datasets: [
@@ -348,7 +348,7 @@ export default function Dashboard() {
           >
             <div className={styles.smallChartWrap}>
               <Line
-                plugins={[todayLinePlugin(daysGone)]}
+                plugins={[todayLinePlugin(daysGone, daysInMonth)]}
                 data={{
                   labels,
                   datasets: [
@@ -374,7 +374,7 @@ export default function Dashboard() {
           >
             <div className={styles.smallChartWrap}>
               <Bar
-                plugins={[todayLinePlugin(daysGone)]}
+                plugins={[todayLinePlugin(daysGone, daysInMonth)]}
                 data={{
                   labels,
                   datasets: [
