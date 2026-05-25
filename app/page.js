@@ -48,31 +48,38 @@ function paceArray(target, days) {
 
 // ── TODAY LINE PLUGIN ────────────────────────────────────────────────────────
 const todayLinePlugin = (daysGone, daysInMonth) => ({
-  id: `todayLine_${daysGone}_${daysInMonth}`,
-  afterDatasetsDraw(chart) {
+  id: `todayLine_${daysGone}`,
+  afterDraw(chart) {
     const { ctx, chartArea, scales } = chart
-    if (!chartArea || daysGone < 1) return
-    // Position today line proportionally across full month width
-    const todayX = chartArea.left + ((daysGone - 1) / (daysInMonth - 1)) * (chartArea.right - chartArea.left)
+    if (!chartArea) return
+    if (!scales.x) return
+    
+    // Calculate x position as proportion of chart width
+    const ratio = (daysGone - 1) / (daysInMonth - 1)
+    const todayX = chartArea.left + ratio * (chartArea.width)
+    
     ctx.save()
-    ctx.setLineDash([4, 4])
-    ctx.strokeStyle = 'rgba(64,81,79,.4)'
-    ctx.lineWidth = 1.5
     ctx.beginPath()
-    ctx.moveTo(todayX, chartArea.top + 6)
+    ctx.strokeStyle = 'rgba(64,81,79,0.5)'
+    ctx.lineWidth = 1.5
+    ctx.setLineDash([4, 4])
+    ctx.moveTo(todayX, chartArea.top)
     ctx.lineTo(todayX, chartArea.bottom)
     ctx.stroke()
     ctx.setLineDash([])
+
+    // Today label box
     ctx.fillStyle = '#40514F'
     ctx.beginPath()
-    ctx.roundRect(todayX - 18, chartArea.top, 36, 18, 3)
+    ctx.rect(todayX - 18, chartArea.top, 36, 16)
     ctx.fill()
-    ctx.fillStyle = '#fff'
-    ctx.font = '9px DM Sans, sans-serif'
+    ctx.fillStyle = '#ffffff'
+    ctx.font = 'bold 9px sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText('Today', todayX, chartArea.top + 13)
+    ctx.textBaseline = 'middle'
+    ctx.fillText('Today', todayX, chartArea.top + 8)
     ctx.restore()
-  },
+  }
 })
 
 // ── MOCK DATA (used when API isn't connected yet) ─────────────────────────────
