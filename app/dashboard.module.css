@@ -305,6 +305,7 @@
   flex-direction: column;
   gap: 0;
   padding: 18px 20px 14px;
+  overflow-y: auto;
 }
 
 .metricHead {
@@ -422,13 +423,7 @@
 .daysText { font-size: 15px; margin-top: 4px; }
 
 .ageChartWrap {
-  flex: 1;
-  min-height: 80px;
-  background: #F3F4EA;
-  border-radius: 10px;
-  padding: 8px;
-  position: relative;
-  margin-bottom: 8px;
+  display: none;
 }
 
 /* FOOTER */
