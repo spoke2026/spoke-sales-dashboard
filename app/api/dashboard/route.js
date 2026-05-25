@@ -61,7 +61,7 @@ export async function GET(request) {
       getMeetings(monthStart, monthEnd, ownerIds),
       getSales(monthStart, monthEnd, ownerIds),
       getPipeline(monthStart, monthEnd, ownerIds),
-      getDealAge(ownerIds),
+      getDealAge(monthStart, monthEnd, ownerIds),
     ])
 
     // Build response
