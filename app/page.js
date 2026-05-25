@@ -126,6 +126,7 @@ export default function Dashboard() {
   const [drillBand, setDrillBand] = useState(null)
   const [drillCalls, setDrillCalls] = useState(null)
   const [drillPipeline, setDrillPipeline] = useState(null)
+  const [drillPipelineTotal, setDrillPipelineTotal] = useState(0)
   const [adminUnlocked, setAdminUnlocked] = useState(false)
   const [showPinModal, setShowPinModal] = useState(false)
   const [pin, setPin] = useState(['', '', '', ''])
@@ -379,7 +380,7 @@ export default function Dashboard() {
   daysGone={daysGone}
   daysInMonth={daysInMonth}
   todayPct={todayPct}
-  onDrill={() => setDrillPipeline(pipeline.details || [])}
+  onDrill={() => { setDrillPipeline(pipeline.details || []); setDrillPipelineTotal(pipeline.actual || 0) }}
 >
             <div className={styles.smallChartWrap}>
               <Bar
@@ -606,7 +607,7 @@ export default function Dashboard() {
       </div>
       <div style={{ borderTop: '1px solid var(--line)', marginTop: '12px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
-          Total: <strong style={{ color: 'var(--ink)' }}>${pipeline.actual.toLocaleString()}</strong>
+          Total: <strong style={{ color: 'var(--ink)' }}>${drillPipelineTotal.toLocaleString()}</strong>
         </span>
         <button className={styles.btnCancel} onClick={() => setDrillPipeline(null)}>Close</button>
       </div>
