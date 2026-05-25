@@ -117,6 +117,7 @@ export default function Dashboard() {
   const [month, setMonth] = useState('2026-05')
   const [rep, setRep] = useState('full-team')
   const [drillBand, setDrillBand] = useState(null)
+  const [drillCalls, setDrillCalls] = useState(null)
   const [adminUnlocked, setAdminUnlocked] = useState(false)
   const [showPinModal, setShowPinModal] = useState(false)
   const [pin, setPin] = useState(['', '', '', ''])
@@ -309,15 +310,16 @@ export default function Dashboard() {
 
           {/* CALLS */}
           <MetricCard
-            icon={<PhoneIcon />}
-            title="Outbound Phone Calls"
-            actual={calls.actual}
-            target={calls.target}
-            isMoney={false}
-            daysGone={daysGone}
-            daysInMonth={daysInMonth}
-            todayPct={todayPct}
-          >
+  icon={<PhoneIcon />}
+  title="Outbound Phone Calls"
+  actual={calls.actual}
+  target={calls.target}
+  isMoney={false}
+  daysGone={daysGone}
+  daysInMonth={daysInMonth}
+  todayPct={todayPct}
+  onDrill={() => setDrillCalls(calls.details || [])}
+>
             <div className={styles.smallChartWrap}>
               <Line
                 plugins={[todayLinePlugin(daysGone)]}
@@ -485,6 +487,40 @@ export default function Dashboard() {
         </div>
       )}
 
+{/* CALLS DRILL MODAL */}
+{drillCalls && (
+  <div className={styles.overlay} onClick={() => setDrillCalls(null)}>
+    <div className={styles.modal} onClick={e => e.stopPropagation()}>
+      <h2>Outbound Calls · {drillCalls.length} this month</h2>
+      <p className={styles.modalSub}>Connected outbound calls · most recent first · click outside to close</p>
+      <div className={styles.dealList}>
+        {drillCalls.map((call, i) => {
+          const dt = new Date(call.date)
+          const nzt = new Date(dt.getTime() + 12 * 60 * 60 * 1000)
+          const OWNERS = {
+            '27034621': 'Ed Beatson',
+            '363522625': 'Mark Beatson',
+          }
+          return (
+            <div key={i} className={styles.dealRow}>
+              <div>
+                <div className={styles.dealName}>{call.title}</div>
+                <div className={styles.dealMeta}>
+                  {nzt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })} · {nzt.toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit' })} · {OWNERS[call.owner] || 'Unknown'}
+                </div>
+              </div>
+              <div className={`${styles.dealBadge} ${styles.badgeOk}`}>Connected</div>
+            </div>
+          )
+        })}
+      </div>
+      <div className={styles.modalActions}>
+        <button className={styles.btnCancel} onClick={() => setDrillCalls(null)}>Close</button>
+      </div>
+    </div>
+  </div>
+)}
+
       {/* PIN MODAL */}
       {showPinModal && (
         <div className={styles.overlay} onClick={() => setShowPinModal(false)}>
@@ -519,7 +555,7 @@ export default function Dashboard() {
 }
 
 // ── METRIC CARD COMPONENT ─────────────────────────────────────────────────────
-function MetricCard({ icon, title, actual, target, isMoney, daysGone, daysInMonth, todayPct, children }) {
+function MetricCard({ icon, title, actual, target, isMoney, daysGone, daysInMonth, todayPct, onDrill, children }) {
   const p = pct(actual, target)
   const pace = paceStatus(actual, target, daysGone, daysInMonth)
   const displayActual = isMoney ? fmt(actual) : actual
@@ -536,7 +572,11 @@ function MetricCard({ icon, title, actual, target, isMoney, daysGone, daysInMont
       </div>
       <div className={styles.metricMain}>
         <div>
-          <div className={`${styles.metricNumber} ${isMoney ? styles.money : ''}`}>{displayActual}</div>
+          <div
+  className={`${styles.metricNumber} ${isMoney ? styles.money : ''}`}
+  style={onDrill ? { cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '4px' } : {}}
+  onClick={onDrill}
+>{displayActual}</div>
           <div className={styles.targetLine}>of <em>{displayTarget}</em> target</div>
         </div>
         <div className={styles.miniPct}>
