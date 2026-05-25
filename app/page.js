@@ -14,7 +14,7 @@ ChartJS.register(
   BarElement, Title, Tooltip, Legend, Filler
 )
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
+// ── HELPERS ───────────────────────────────────────────────────────────────────
 function fmt(v) {
   if (!v || v === 0) return '$0'
   if (v >= 1000000) return '$' + (v / 1000000).toFixed(1) + 'M'
@@ -46,18 +46,14 @@ function paceArray(target, days) {
   return Array.from({ length: days }, (_, i) => Math.round(target / days * (i + 1)))
 }
 
-// ── TODAY LINE PLUGIN ────────────────────────────────────────────────────────
+// ── TODAY LINE PLUGIN ─────────────────────────────────────────────────────────
 const todayLinePlugin = (daysGone, daysInMonth) => ({
   id: `todayLine_${daysGone}`,
   afterDraw(chart) {
-    const { ctx, chartArea, scales } = chart
+    const { ctx, chartArea } = chart
     if (!chartArea) return
-    if (!scales.x) return
-    
-    // Calculate x position as proportion of chart width
     const ratio = (daysGone - 1) / (daysInMonth - 1)
-    const todayX = chartArea.left + ratio * (chartArea.width)
-    
+    const todayX = chartArea.left + ratio * chartArea.width
     ctx.save()
     ctx.beginPath()
     ctx.strokeStyle = 'rgba(64,81,79,0.5)'
@@ -67,8 +63,6 @@ const todayLinePlugin = (daysGone, daysInMonth) => ({
     ctx.lineTo(todayX, chartArea.bottom)
     ctx.stroke()
     ctx.setLineDash([])
-
-    // Today label box
     ctx.fillStyle = '#40514F'
     ctx.beginPath()
     ctx.rect(todayX - 18, chartArea.top, 36, 16)
@@ -82,7 +76,25 @@ const todayLinePlugin = (daysGone, daysInMonth) => ({
   }
 })
 
-// ── MOCK DATA (used when API isn't connected yet) ─────────────────────────────
+// ── STAGE / OWNER MAPS ────────────────────────────────────────────────────────
+const RT_STAGES = {
+  '2848593377': 'Opportunity Identified',
+  '3049815540': 'Quote Required',
+  '2848628197': 'Follow Up Required',
+  '2848628198': 'Decision Pending',
+  '2848628199': 'Closed Won',
+  '2848628200': 'Indent',
+  '2848628201': 'Closed Lost',
+}
+
+const OWNERS = {
+  '27034621':  'Ed Beatson',
+  '363522625': 'Mark Beatson',
+  '363424672': 'Sage Capper',
+  '363522561': 'Yvette Devoe',
+}
+
+// ── MOCK DATA ─────────────────────────────────────────────────────────────────
 const MOCK = {
   sales: {
     actual: 87400, budget: 150000,
@@ -90,7 +102,7 @@ const MOCK = {
     lastMonthActual: 76200,
   },
   calls: {
-    actual: 38, target: 60,
+    actual: 38, target: 60, details: [],
     dailyActuals: [2,4,6,7,9,11,14,16,18,21,24,27,30,...Array(18).fill(null)],
     lastMonth: 42,
   },
@@ -100,17 +112,17 @@ const MOCK = {
     lastMonth: 9,
   },
   pipeline: {
-    actual: 124000, target: 200000,
+    actual: 124000, target: 200000, details: [],
     dailyActuals: [8000,14000,22000,31000,38000,48000,62000,74000,86000,98000,108000,118000,124000,...Array(18).fill(null)],
     lastMonth: 98000,
   },
   dealAge: {
-    avgDays: 17, lastMonthAvg: 22,
+    avgDays: 17, lastMonthAvg: 22, total: 10,
     bands: [
-      { label: '1–5 days', min:1, max:5, count:2, deals:[{name:'Pivot Hort - Oilskins',days:3,stage:'Samples Sent'},{name:'Smedley #SO-00225',days:4,stage:'Waiting Stock'}] },
-      { label: '6–10 days', min:6, max:10, count:3, deals:[{name:'BK Developments',days:7},{name:'Seaview #SO-00227',days:8},{name:'Craigmore L FP',days:9}] },
-      { label: '11–20 days', min:11, max:20, count:3, deals:[{name:'Craigmore Colleen',days:12},{name:'Craggy Range FP',days:14},{name:'Waikiwi Vets',days:18}] },
-      { label: '21+ days', min:21, max:9999, count:2, deals:[{name:'Thornfield Estate',days:22},{name:'Alpine Dairy',days:28}] },
+      { label: '1–5 days',   min:1,  max:5,    count:2, deals:[{name:'Pivot Hort - Oilskins',days:3,stage:'Samples Sent'},{name:'Smedley #SO-00225',days:4,stage:'Waiting Stock'}] },
+      { label: '6–10 days',  min:6,  max:10,   count:3, deals:[{name:'BK Developments',days:7},{name:'Seaview #SO-00227',days:8},{name:'Craigmore L FP',days:9}] },
+      { label: '11–20 days', min:11, max:20,   count:3, deals:[{name:'Craigmore Colleen',days:12},{name:'Craggy Range FP',days:14},{name:'Waikiwi Vets',days:18}] },
+      { label: '21+ days',   min:21, max:9999, count:2, deals:[{name:'Thornfield Estate',days:22},{name:'Alpine Dairy',days:28}] },
     ],
     history: [44,50,43,45,38,36,39,31,28,27,23,20,17],
   },
@@ -119,26 +131,24 @@ const MOCK = {
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const [data, setData] = useState(MOCK)
-  const [loading, setLoading] = useState(false)
-  const [month, setMonth] = useState('2026-05')
-  const [rep, setRep] = useState('full-team')
-  const [drillBand, setDrillBand] = useState(null)
-  const [drillCalls, setDrillCalls] = useState(null)
-  const [drillPipeline, setDrillPipeline] = useState(null)
+  const [data, setData]                         = useState(MOCK)
+  const [loading, setLoading]                   = useState(false)
+  const [month, setMonth]                       = useState('2026-05')
+  const [rep, setRep]                           = useState('full-team')
+  const [drillBand, setDrillBand]               = useState(null)
+  const [drillCalls, setDrillCalls]             = useState(null)
+  const [drillPipeline, setDrillPipeline]       = useState(null)
   const [drillPipelineTotal, setDrillPipelineTotal] = useState(0)
-  const [adminUnlocked, setAdminUnlocked] = useState(false)
-  const [showPinModal, setShowPinModal] = useState(false)
-  const [pin, setPin] = useState(['', '', '', ''])
-  const [pinError, setPinError] = useState('')
+  const [adminUnlocked, setAdminUnlocked]       = useState(false)
+  const [showPinModal, setShowPinModal]         = useState(false)
+  const [pin, setPin]                           = useState(['', '', '', ''])
+  const [pinError, setPinError]                 = useState('')
   const pinRefs = [useRef(), useRef(), useRef(), useRef()]
 
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/dashboard?month=${month}&rep=${rep}`, {
-  cache: 'no-store'
-})
+      const res = await fetch(`/api/dashboard?month=${month}&rep=${rep}`, { cache: 'no-store' })
       if (res.ok) {
         const json = await res.json()
         setData(json)
@@ -151,8 +161,6 @@ export default function Dashboard() {
   }, [month, rep])
 
   useEffect(() => { loadData() }, [loadData])
-
-  // Auto-refresh every 15 minutes
   useEffect(() => {
     const interval = setInterval(loadData, 15 * 60 * 1000)
     return () => clearInterval(interval)
@@ -160,13 +168,12 @@ export default function Dashboard() {
 
   const { sales, calls, visits, pipeline, dealAge, meta } = data
   const { daysGone, daysInMonth } = meta
-  const todayPct = Math.round(daysGone / daysInMonth * 100)
-  const labels = dayLabels(daysInMonth, month)
-  const salPace = paceStatus(sales.actual, sales.budget, daysGone, daysInMonth)
-  const forecast = daysGone > 0 ? Math.round(sales.actual / daysGone * daysInMonth) : 0
-  const monthPct = Math.round(daysGone / daysInMonth * 100)
+  const todayPct  = Math.round(daysGone / daysInMonth * 100)
+  const labels    = dayLabels(daysInMonth, month)
+  const salPace   = paceStatus(sales.actual, sales.budget, daysGone, daysInMonth)
+  const forecast  = daysGone > 0 ? Math.round(sales.actual / daysGone * daysInMonth) : 0
+  const monthPct  = Math.round(daysGone / daysInMonth * 100)
 
-  // Chart defaults
   const chartDefaults = {
     responsive: true,
     maintainAspectRatio: false,
@@ -179,11 +186,8 @@ export default function Dashboard() {
     y: { grid: { display: false }, border: { display: false }, ticks: { maxTicksLimit: 3, font: { size: 9 } } },
   }
 
-  // PIN logic
   function handlePinInput(i, val) {
-    const next = [...pin]
-    next[i] = val
-    setPin(next)
+    const next = [...pin]; next[i] = val; setPin(next)
     if (val && i < 3) pinRefs[i + 1].current?.focus()
   }
 
@@ -191,21 +195,23 @@ export default function Dashboard() {
     const entered = pin.join('')
     const correct = process.env.NEXT_PUBLIC_ADMIN_PIN || '1234'
     if (entered === correct) {
-      setAdminUnlocked(true)
-      setShowPinModal(false)
-      setPin(['', '', '', ''])
-      setPinError('')
+      setAdminUnlocked(true); setShowPinModal(false)
+      setPin(['', '', '', '']); setPinError('')
     } else {
       setPinError('Incorrect PIN')
-      setPin(['', '', '', ''])
-      pinRefs[0].current?.focus()
+      setPin(['', '', '', '']); pinRefs[0].current?.focus()
     }
+  }
+
+  function openDrillPipeline() {
+    setDrillPipeline(pipeline.details || [])
+    setDrillPipelineTotal(pipeline.actual || 0)
   }
 
   return (
     <div className={styles.dashboard}>
 
-      {/* HEADER */}
+      {/* ── HEADER ── */}
       <header className={styles.header}>
         <div className={styles.brandRow}>
           <img src="/spoke-logo.png" alt="Spoke" className={styles.logoImg} />
@@ -230,15 +236,13 @@ export default function Dashboard() {
             {adminUnlocked ? '🔓 Admin' : '🔒 Admin'}
           </button>
           <div className={styles.sync}>
-            <span>
-              {loading ? 'Syncing HubSpot...' : `Last synced from HubSpot · ${meta.lastSynced}`}
-            </span>
+            <span>{loading ? 'Syncing HubSpot...' : `Last synced from HubSpot · ${meta.lastSynced}`}</span>
             <i className={`${styles.dot} ${loading ? styles.dotPulse : ''}`} />
           </div>
         </div>
       </header>
 
-      {/* MAIN */}
+      {/* ── MAIN ── */}
       <main className={styles.main}>
 
         {/* TOP CARD — Sales */}
@@ -282,13 +286,7 @@ export default function Dashboard() {
                   ...chartDefaults,
                   plugins: {
                     ...chartDefaults.plugins,
-                    tooltip: {
-                      callbacks: {
-                        label: ctx => ctx.datasetIndex === 0
-                          ? `Actual: ${fmt(ctx.raw)}`
-                          : `Pace: ${fmt(ctx.raw)}`,
-                      },
-                    },
+                    tooltip: { callbacks: { label: ctx => ctx.datasetIndex === 0 ? `Actual: ${fmt(ctx.raw)}` : `Pace: ${fmt(ctx.raw)}` } },
                   },
                   scales: {
                     x: { grid: { display: false }, border: { color: 'rgba(64,81,79,.18)' }, ticks: { maxTicksLimit: 6, font: { size: 10 } } },
@@ -319,16 +317,16 @@ export default function Dashboard() {
 
           {/* CALLS */}
           <MetricCard
-  icon={<PhoneIcon />}
-  title="Outbound Phone Calls"
-  actual={calls.actual}
-  target={calls.target}
-  isMoney={false}
-  daysGone={daysGone}
-  daysInMonth={daysInMonth}
-  todayPct={todayPct}
-  onDrill={() => setDrillCalls(calls.details || [])}
->
+            icon={<PhoneIcon />}
+            title="Outbound Phone Calls"
+            actual={calls.actual}
+            target={calls.target}
+            isMoney={false}
+            daysGone={daysGone}
+            daysInMonth={daysInMonth}
+            todayPct={todayPct}
+            onDrill={() => setDrillCalls(calls.details || [])}
+          >
             <div className={styles.smallChartWrap}>
               <Line
                 plugins={[todayLinePlugin(daysGone, daysInMonth)]}
@@ -372,16 +370,16 @@ export default function Dashboard() {
 
           {/* PIPELINE */}
           <MetricCard
-  icon={<DollarIcon />}
-  title="Added Value to Pipeline"
-  actual={pipeline.actual}
-  target={pipeline.target}
-  isMoney={true}
-  daysGone={daysGone}
-  daysInMonth={daysInMonth}
-  todayPct={todayPct}
-  onDrill={() => { setDrillPipeline(pipeline.details || []); setDrillPipelineTotal(pipeline.actual || 0) }}
->
+            icon={<DollarIcon />}
+            title="Added Value to Pipeline"
+            actual={pipeline.actual}
+            target={pipeline.target}
+            isMoney={true}
+            daysGone={daysGone}
+            daysInMonth={daysInMonth}
+            todayPct={todayPct}
+            onDrill={openDrillPipeline}
+          >
             <div className={styles.smallChartWrap}>
               <Bar
                 plugins={[todayLinePlugin(daysGone, daysInMonth)]}
@@ -394,10 +392,7 @@ export default function Dashboard() {
                 }}
                 options={{
                   ...chartDefaults,
-                  scales: {
-                    ...smallScales,
-                    y: { ...smallScales.y, ticks: { ...smallScales.y.ticks, callback: v => fmt(v) } },
-                  },
+                  scales: { ...smallScales, y: { ...smallScales.y, ticks: { ...smallScales.y.ticks, callback: v => fmt(v) } } },
                 }}
               />
             </div>
@@ -412,51 +407,40 @@ export default function Dashboard() {
             <div className={styles.metricMain}>
               <div>
                 <div className={styles.metricNumber}>{dealAge.avgDays}</div>
-                <div className={styles.daysText}>working days</div>
+                <div className={styles.daysText}>days · {dealAge.total || 0} active deals</div>
               </div>
               <div className={styles.miniPct}>
-                <strong>{dealAge.lastMonthAvg - dealAge.avgDays >= 0 ? '↓ ' : '↑ '}{Math.abs(dealAge.lastMonthAvg - dealAge.avgDays)}</strong>
-                days vs<br />last month
+                <strong>
+                  {dealAge.lastMonthAvg > 0
+                    ? (dealAge.lastMonthAvg - dealAge.avgDays >= 0 ? '↓ ' : '↑ ') + Math.abs(dealAge.lastMonthAvg - dealAge.avgDays)
+                    : '—'}
+                </strong>
+                vs<br />last month
               </div>
             </div>
-            <div className={styles.ageChartWrap}>
-              <Line
-                data={{
-                  labels: dealAge.history.map((_, i) => ''),
-                  datasets: [
-                    { data: dealAge.history, borderColor: '#40514F', backgroundColor: 'transparent', borderWidth: 2.5, tension: 0.25, pointRadius: 3, pointBackgroundColor: '#40514F' },
-                    { data: Array(dealAge.history.length).fill(21), borderColor: 'rgba(64,81,79,.3)', borderDash: [6, 5], borderWidth: 1.5, pointRadius: 0 },
-                  ],
-                }}
-                options={{
-                  ...chartDefaults,
-                  scales: {
-                    x: { grid: { display: false }, border: { display: false }, ticks: { display: false } },
-                    y: { min: 0, max: 60, grid: { color: 'rgba(64,81,79,.08)' }, border: { display: false }, ticks: { stepSize: 20, font: { size: 9 } } },
-                  },
-                }}
-              />
+            <div style={{ fontSize: '9px', color: 'var(--muted)', margin: '6px 0', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+              By age band · click to drill
             </div>
-            <div style={{ marginTop: '8px' }}>
-              <div style={{ fontSize: '9px', color: 'var(--muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>By age band · click to drill</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
-                {dealAge.bands.map((band, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setDrillBand(band)}
-                    style={{
-                      background: i === 3 && band.count > 0 ? 'rgba(198,92,46,0.1)' : 'rgba(64,81,79,0.06)',
-                      border: i === 3 && band.count > 0 ? '1px solid rgba(198,92,46,0.2)' : '1px solid transparent',
-                      borderRadius: '8px', padding: '6px 8px', cursor: 'pointer',
-                      textAlign: 'center', fontFamily: 'var(--font-sans)',
-                    }}
-                  >
-                    <div style={{ fontSize: '9px', color: 'var(--muted)' }}>{band.label}</div>
-                    <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', color: i === 3 && band.count > 0 ? 'var(--bad)' : 'var(--mineral)', lineHeight: 1 }}>{band.count}</div>
-                    <div style={{ fontSize: '9px', color: 'var(--muted)' }}>deal{band.count !== 1 ? 's' : ''}</div>
-                  </button>
-                ))}
-              </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', flex: 1 }}>
+              {dealAge.bands.map((band, i) => (
+                <button
+                  key={i}
+                  onClick={() => setDrillBand(band)}
+                  style={{
+                    background: i === 3 && band.count > 0 ? 'rgba(198,92,46,0.1)' : 'rgba(64,81,79,0.06)',
+                    border: i === 3 && band.count > 0 ? '1px solid rgba(198,92,46,0.2)' : '1px solid transparent',
+                    borderRadius: '8px', padding: '6px 8px', cursor: 'pointer',
+                    textAlign: 'center', fontFamily: 'var(--font-sans)',
+                  }}
+                >
+                  <div style={{ fontSize: '9px', color: 'var(--muted)' }}>{band.label}</div>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', color: i === 3 && band.count > 0 ? 'var(--bad)' : 'var(--mineral)', lineHeight: 1 }}>{band.count}</div>
+                  <div style={{ fontSize: '9px', color: 'var(--muted)' }}>deal{band.count !== 1 ? 's' : ''}</div>
+                </button>
+              ))}
+            </div>
+            <div style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '6px' }}>
+              Bespoke Ops · creation to Goods Shipped/Invoiced
             </div>
           </article>
 
@@ -469,12 +453,12 @@ export default function Dashboard() {
         <span>Times shown in NZT</span>
       </footer>
 
-      {/* DRILL MODAL */}
+      {/* ── DEAL BAND DRILL MODAL ── */}
       {drillBand && (
         <div className={styles.overlay} onClick={() => setDrillBand(null)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <h2>{drillBand.label} · {drillBand.count} deal{drillBand.count !== 1 ? 's' : ''}</h2>
-            <p className={styles.modalSub}>Working days from deal creation · Bespoke Operations pipeline</p>
+            <p className={styles.modalSub}>Days from deal creation · Bespoke Operations · close date this month</p>
             <div className={styles.dealList}>
               {drillBand.deals.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No deals in this range</div>
@@ -497,41 +481,74 @@ export default function Dashboard() {
         </div>
       )}
 
-{/* CALLS DRILL MODAL */}
-{drillCalls && (
-  <div className={styles.overlay} onClick={() => setDrillCalls(null)}>
-    <div className={styles.modal} onClick={e => e.stopPropagation()}>
-      <h2>Outbound Calls · {drillCalls.length} this month</h2>
-      <p className={styles.modalSub}>Connected outbound calls · most recent first · click outside to close</p>
-      <div className={styles.dealList}>
-        {drillCalls.map((call, i) => {
-          const dt = new Date(call.date)
-          const nzt = new Date(dt.getTime() + 12 * 60 * 60 * 1000)
-          const OWNERS = {
-            '27034621': 'Ed Beatson',
-            '363522625': 'Mark Beatson',
-          }
-          return (
-            <div key={i} className={styles.dealRow}>
-              <div>
-                <div className={styles.dealName}>{call.title}</div>
-                <div className={styles.dealMeta}>
-                  {nzt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })} · {nzt.toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit' })} · {OWNERS[call.owner] || 'Unknown'}
-                </div>
-              </div>
-              <div className={`${styles.dealBadge} ${styles.badgeOk}`}>Connected</div>
+      {/* ── CALLS DRILL MODAL ── */}
+      {drillCalls && (
+        <div className={styles.overlay} onClick={() => setDrillCalls(null)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <h2>Outbound Calls · {drillCalls.length} connected this month</h2>
+            <p className={styles.modalSub}>Connected outbound calls · most recent first · click outside to close</p>
+            <div className={styles.dealList}>
+              {drillCalls.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No calls found</div>
+              ) : drillCalls.map((call, i) => {
+                const nzt = new Date(new Date(call.date).getTime() + 12 * 60 * 60 * 1000)
+                return (
+                  <div key={i} className={styles.dealRow}>
+                    <div>
+                      <div className={styles.dealName}>{call.title}</div>
+                      <div className={styles.dealMeta}>
+                        {nzt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })} · {nzt.toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit' })} · {OWNERS[call.owner] || 'Unknown'}
+                      </div>
+                    </div>
+                    <div className={`${styles.dealBadge} ${styles.badgeOk}`}>Connected</div>
+                  </div>
+                )
+              })}
             </div>
-          )
-        })}
-      </div>
-      <div className={styles.modalActions}>
-        <button className={styles.btnCancel} onClick={() => setDrillCalls(null)}>Close</button>
-      </div>
-    </div>
-  </div>
-)}
+            <div className={styles.modalActions}>
+              <button className={styles.btnCancel} onClick={() => setDrillCalls(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* PIN MODAL */}
+      {/* ── PIPELINE DRILL MODAL ── */}
+      {drillPipeline && (
+        <div className={styles.overlay} onClick={() => setDrillPipeline(null)}>
+          <div className={styles.modal} style={{ width: '560px' }} onClick={e => e.stopPropagation()}>
+            <h2>New Pipeline · {drillPipeline.length} deals added this month</h2>
+            <p className={styles.modalSub}>Revenue Train pipeline · new deals created this month · click outside to close</p>
+            <div className={styles.dealList}>
+              {drillPipeline.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No deals added this month</div>
+              ) : drillPipeline.map((deal, i) => {
+                const nzt = new Date(new Date(deal.date).getTime() + 12 * 60 * 60 * 1000)
+                return (
+                  <div key={i} className={styles.dealRow}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className={styles.dealName}>{deal.name}</div>
+                      <div className={styles.dealMeta}>
+                        {RT_STAGES[deal.stage] || deal.stage} · {OWNERS[deal.owner] || 'Unknown'} · {nzt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}
+                      </div>
+                    </div>
+                    <div className={`${styles.dealBadge} ${styles.badgeOk}`} style={{ marginLeft: '12px', flexShrink: 0 }}>
+                      {deal.amount > 0 ? `$${Math.round(deal.amount).toLocaleString()}` : 'No value'}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <div style={{ borderTop: '1px solid var(--line)', marginTop: '12px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                Total: <strong style={{ color: 'var(--ink)' }}>${drillPipelineTotal.toLocaleString()}</strong>
+              </span>
+              <button className={styles.btnCancel} onClick={() => setDrillPipeline(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── PIN MODAL ── */}
       {showPinModal && (
         <div className={styles.overlay} onClick={() => setShowPinModal(false)}>
           <div className={styles.modal} style={{ width: '300px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
@@ -564,56 +581,6 @@ export default function Dashboard() {
   )
 }
 
-{/* PIPELINE DRILL MODAL */}
-{drillPipeline && (
-  <div className={styles.overlay} onClick={() => setDrillPipeline(null)}>
-    <div className={styles.modal} style={{ width: '560px' }} onClick={e => e.stopPropagation()}>
-      <h2>New Pipeline · {drillPipeline.length} deals added this month</h2>
-      <p className={styles.modalSub}>Revenue Train pipeline · new deals created this month · click outside to close</p>
-      <div className={styles.dealList}>
-        {drillPipeline.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No deals added this month</div>
-        ) : drillPipeline.map((deal, i) => {
-          const STAGES = {
-            '2848593377': 'Opportunity Identified',
-            '3049815540': 'Quote Required',
-            '2848628197': 'Follow Up Required',
-            '2848628198': 'Decision Pending',
-            '2848628199': 'Closed Won',
-            '2848628200': 'Indent',
-            '2848628201': 'Closed Lost',
-          }
-          const OWNERS = {
-            '27034621': 'Ed Beatson',
-            '363522625': 'Mark Beatson',
-            '363424672': 'Sage Capper',
-            '363522561': 'Yvette Devoe',
-          }
-          const dt = new Date(new Date(deal.date).getTime() + 12 * 60 * 60 * 1000)
-          return (
-            <div key={i} className={styles.dealRow}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className={styles.dealName}>{deal.name}</div>
-                <div className={styles.dealMeta}>
-                  {STAGES[deal.stage] || deal.stage} · {OWNERS[deal.owner] || 'Unknown'} · {dt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}
-                </div>
-              </div>
-              <div className={`${styles.dealBadge} ${styles.badgeOk}`} style={{ marginLeft: '12px', flexShrink: 0 }}>
-                {deal.amount > 0 ? `$${Math.round(deal.amount).toLocaleString()}` : 'No value'}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      <div style={{ borderTop: '1px solid var(--line)', marginTop: '12px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
-          Total: <strong style={{ color: 'var(--ink)' }}>${drillPipelineTotal.toLocaleString()}</strong>
-        </span>
-        <button className={styles.btnCancel} onClick={() => setDrillPipeline(null)}>Close</button>
-      </div>
-    </div>
-  </div>
-)}
 // ── METRIC CARD COMPONENT ─────────────────────────────────────────────────────
 function MetricCard({ icon, title, actual, target, isMoney, daysGone, daysInMonth, todayPct, onDrill, children }) {
   const p = pct(actual, target)
@@ -633,10 +600,10 @@ function MetricCard({ icon, title, actual, target, isMoney, daysGone, daysInMont
       <div className={styles.metricMain}>
         <div>
           <div
-  className={`${styles.metricNumber} ${isMoney ? styles.money : ''}`}
-  style={onDrill ? { cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '4px' } : {}}
-  onClick={onDrill}
->{displayActual}</div>
+            className={`${styles.metricNumber} ${isMoney ? styles.money : ''}`}
+            style={onDrill ? { cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '4px' } : {}}
+            onClick={onDrill}
+          >{displayActual}</div>
           <div className={styles.targetLine}>of <em>{displayTarget}</em> target</div>
         </div>
         <div className={styles.miniPct}>
@@ -658,7 +625,7 @@ function MetricCard({ icon, title, actual, target, isMoney, daysGone, daysInMont
   )
 }
 
-// ── ICONS ────────────────────────────────────────────────────────────────────
+// ── ICONS ─────────────────────────────────────────────────────────────────────
 const PhoneIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.1a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.45h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
