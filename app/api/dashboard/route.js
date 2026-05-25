@@ -74,12 +74,13 @@ export async function GET(request) {
         lastMonthActual: 0, // TODO: fetch previous month
       },
       calls: {
-        actual: calls.total,
-        target: BUDGETS.calls,
-        dailyActuals: calls.dailyActuals,
-        byOwner: calls.byOwner,
-        lastMonth: 0,
-      },
+  actual: calls.total,
+  target: BUDGETS.calls,
+  dailyActuals: calls.dailyActuals,
+  byOwner: calls.byOwner,
+  details: calls.details || [],
+  lastMonth: 0,
+},
       visits: {
         actual: visits.total,
         target: BUDGETS.visits,
