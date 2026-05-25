@@ -50,10 +50,14 @@ function paceArray(target, days) {
 const todayLinePlugin = (daysGone, daysInMonth) => ({
   id: `todayLine_${daysGone}`,
   afterDraw(chart) {
-    const { ctx, chartArea } = chart
-    if (!chartArea) return
-    const ratio = (daysGone - 1) / (daysInMonth - 1)
-    const todayX = chartArea.left + ratio * chartArea.width
+    const { ctx, chartArea, scales } = chart
+    if (!chartArea || !scales.x) return
+    // Use the x scale to get the exact pixel for day index (daysGone - 1)
+    // The x axis has daysInMonth labels (0 to daysInMonth-1)
+    // daysGone-1 is the index of today
+    const todayIndex = daysGone - 1
+    const todayX = scales.x.getPixelForValue(todayIndex)
+    if (!todayX || isNaN(todayX)) return
     ctx.save()
     ctx.beginPath()
     ctx.strokeStyle = 'rgba(64,81,79,0.5)'
