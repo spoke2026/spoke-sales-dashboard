@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 // app/api/dashboard/route.js
 // GET /api/dashboard?month=2026-05&rep=full-team
 //
@@ -114,7 +115,7 @@ export async function GET(request) {
 
     return NextResponse.json(response, {
       headers: {
-        'Cache-Control': 'no-store', // always fresh from HubSpot
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
       },
     })
   } catch (error) {

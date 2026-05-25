@@ -126,7 +126,9 @@ export default function Dashboard() {
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/dashboard?month=${month}&rep=${rep}`)
+      const res = await fetch(`/api/dashboard?month=${month}&rep=${rep}`, {
+  cache: 'no-store'
+})
       if (res.ok) {
         const json = await res.json()
         setData(json)
