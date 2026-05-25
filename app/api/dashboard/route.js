@@ -89,12 +89,13 @@ export async function GET(request) {
         lastMonth: 0,
       },
       pipeline: {
-        actual: pipeline.total,
-        target: BUDGETS.pipeline,
-        dailyActuals: pipeline.dailyActuals,
-        byOwner: pipeline.byOwner,
-        lastMonth: 0,
-      },
+  actual: pipeline.total,
+  target: BUDGETS.pipeline,
+  dailyActuals: pipeline.dailyActuals,
+  byOwner: pipeline.byOwner,
+  details: pipeline.details || [],
+  lastMonth: 0,
+},
       dealAge: {
         avgDays: dealAge.avgDays,
         lastMonthAvg: 0, // TODO: fetch previous month

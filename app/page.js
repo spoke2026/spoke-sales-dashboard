@@ -125,6 +125,7 @@ export default function Dashboard() {
   const [rep, setRep] = useState('full-team')
   const [drillBand, setDrillBand] = useState(null)
   const [drillCalls, setDrillCalls] = useState(null)
+  const [drillPipeline, setDrillPipeline] = useState(null)
   const [adminUnlocked, setAdminUnlocked] = useState(false)
   const [showPinModal, setShowPinModal] = useState(false)
   const [pin, setPin] = useState(['', '', '', ''])
@@ -370,15 +371,16 @@ export default function Dashboard() {
 
           {/* PIPELINE */}
           <MetricCard
-            icon={<DollarIcon />}
-            title="Added Value to Pipeline"
-            actual={pipeline.actual}
-            target={pipeline.target}
-            isMoney={true}
-            daysGone={daysGone}
-            daysInMonth={daysInMonth}
-            todayPct={todayPct}
-          >
+  icon={<DollarIcon />}
+  title="Added Value to Pipeline"
+  actual={pipeline.actual}
+  target={pipeline.target}
+  isMoney={true}
+  daysGone={daysGone}
+  daysInMonth={daysInMonth}
+  todayPct={todayPct}
+  onDrill={() => setDrillPipeline(pipeline.details || [])}
+>
             <div className={styles.smallChartWrap}>
               <Bar
                 plugins={[todayLinePlugin(daysGone, daysInMonth)]}
@@ -561,6 +563,56 @@ export default function Dashboard() {
   )
 }
 
+{/* PIPELINE DRILL MODAL */}
+{drillPipeline && (
+  <div className={styles.overlay} onClick={() => setDrillPipeline(null)}>
+    <div className={styles.modal} style={{ width: '560px' }} onClick={e => e.stopPropagation()}>
+      <h2>New Pipeline · {drillPipeline.length} deals added this month</h2>
+      <p className={styles.modalSub}>Revenue Train pipeline · new deals created this month · click outside to close</p>
+      <div className={styles.dealList}>
+        {drillPipeline.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No deals added this month</div>
+        ) : drillPipeline.map((deal, i) => {
+          const STAGES = {
+            '2848593377': 'Opportunity Identified',
+            '3049815540': 'Quote Required',
+            '2848628197': 'Follow Up Required',
+            '2848628198': 'Decision Pending',
+            '2848628199': 'Closed Won',
+            '2848628200': 'Indent',
+            '2848628201': 'Closed Lost',
+          }
+          const OWNERS = {
+            '27034621': 'Ed Beatson',
+            '363522625': 'Mark Beatson',
+            '363424672': 'Sage Capper',
+            '363522561': 'Yvette Devoe',
+          }
+          const dt = new Date(new Date(deal.date).getTime() + 12 * 60 * 60 * 1000)
+          return (
+            <div key={i} className={styles.dealRow}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className={styles.dealName}>{deal.name}</div>
+                <div className={styles.dealMeta}>
+                  {STAGES[deal.stage] || deal.stage} · {OWNERS[deal.owner] || 'Unknown'} · {dt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}
+                </div>
+              </div>
+              <div className={`${styles.dealBadge} ${styles.badgeOk}`} style={{ marginLeft: '12px', flexShrink: 0 }}>
+                {deal.amount > 0 ? `$${Math.round(deal.amount).toLocaleString()}` : 'No value'}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <div style={{ borderTop: '1px solid var(--line)', marginTop: '12px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
+          Total: <strong style={{ color: 'var(--ink)' }}>${pipeline.actual.toLocaleString()}</strong>
+        </span>
+        <button className={styles.btnCancel} onClick={() => setDrillPipeline(null)}>Close</button>
+      </div>
+    </div>
+  </div>
+)}
 // ── METRIC CARD COMPONENT ─────────────────────────────────────────────────────
 function MetricCard({ icon, title, actual, target, isMoney, daysGone, daysInMonth, todayPct, onDrill, children }) {
   const p = pct(actual, target)
