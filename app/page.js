@@ -48,7 +48,7 @@ function paceArray(target, days) {
 
 // ── TODAY LINE PLUGIN ────────────────────────────────────────────────────────
 const todayLinePlugin = (daysGone, daysInMonth) => ({
-  id: 'todayLine',
+  id: `todayLine_${daysGone}_${daysInMonth}`,
   afterDatasetsDraw(chart) {
     const { ctx, chartArea, scales } = chart
     if (!chartArea || daysGone < 1) return
