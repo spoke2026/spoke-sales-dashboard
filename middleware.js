@@ -14,14 +14,9 @@ export function middleware(request) {
   const url = request.nextUrl
 
   if (basicAuth) {
-    const authValue = basicAuth.split(' ')[1]
-    const [user, pwd] = atob(authValue).split(':')
     const validPassword = process.env.DASHBOARD_PASSWORD || 'spoke2026'
-
-    if (pwd === validPassword) {
-      return NextResponse.next()
-    }
-  }
+const validUser = process.env.DASHBOARD_USERNAME || 'spoke'
+if (pwd === validPassword && (user === validUser || user === '')) {
 
   // Return 401 to trigger browser password prompt
   return new NextResponse('Authentication required', {
