@@ -251,7 +251,7 @@ export default function Dashboard() {
         <div className={styles.brandRow}>
           <img src="/spoke-logo.png" alt="Spoke" className={styles.logoImg} />
           <div className={styles.divider} />
-          <h1>Sales Performance Dashboard</h1>
+          <h1>Sales Dashboard</h1>
         </div>
         <div className={styles.controls}>
           <select value={month} onChange={e => setMonth(e.target.value)}>
