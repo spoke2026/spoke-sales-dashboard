@@ -14,7 +14,6 @@ ChartJS.register(
   BarElement, Title, Tooltip, Legend, Filler
 )
 
-// ── HELPERS ───────────────────────────────────────────────────────────────────
 function fmt(v) {
   if (!v || v === 0) return '$0'
   if (v >= 1000000) return '$' + (v / 1000000).toFixed(1) + 'M'
@@ -46,32 +45,44 @@ function paceArray(target, days) {
   return Array.from({ length: days }, (_, i) => Math.round(target / days * (i + 1)))
 }
 
+// Pad actuals array to full month length with NaN (not null)
+// NaN causes Chart.js to skip drawing the point but KEEPS the x-axis position
+function padActuals(actuals, daysInMonth) {
+  const padded = Array(daysInMonth).fill(NaN)
+  if (!actuals) return padded
+  actuals.forEach((v, i) => {
+    if (v !== null && v !== undefined) padded[i] = v
+  })
+  return padded
+}
+
 // ── TODAY LINE PLUGIN ─────────────────────────────────────────────────────────
+// Strategy: use the x-axis scale min/max pixel range and map daysGone/daysInMonth
+// onto it proportionally. This works regardless of how Chart.js indexes data.
 const todayLinePlugin = (daysGone, daysInMonth) => ({
-  id: `todayLine_${daysGone}`,
-  afterDraw(chart) {
+  id: `tl_${daysGone}_${daysInMonth}`,
+  afterDatasetsDraw(chart) {
     const { ctx, chartArea, scales } = chart
     if (!chartArea || !scales.x) return
-    // Use the x scale to get the exact pixel for day index (daysGone - 1)
-    // The x axis has daysInMonth labels (0 to daysInMonth-1)
-    // daysGone-1 is the index of today
-    const todayIndex = daysGone - 1
-    const todayX = scales.x.getPixelForValue(todayIndex)
-    if (!todayX || isNaN(todayX)) return
+    // The x-axis spans from its first to last tick pixel
+    // We want today's position as a fraction of the full month
+    const xMin = scales.x.getPixelForValue(0)
+    const xMax = scales.x.getPixelForValue(daysInMonth - 1)
+    if (isNaN(xMin) || isNaN(xMax)) return
+    // Interpolate: day 1 = xMin, day daysInMonth = xMax
+    const todayX = xMin + ((daysGone - 1) / (daysInMonth - 1)) * (xMax - xMin)
     ctx.save()
-    ctx.beginPath()
-    ctx.strokeStyle = 'rgba(64,81,79,0.5)'
+    ctx.strokeStyle = 'rgba(64,81,79,0.55)'
     ctx.lineWidth = 1.5
     ctx.setLineDash([4, 4])
-    ctx.moveTo(todayX, chartArea.top)
+    ctx.beginPath()
+    ctx.moveTo(todayX, chartArea.top + 20)
     ctx.lineTo(todayX, chartArea.bottom)
     ctx.stroke()
     ctx.setLineDash([])
     ctx.fillStyle = '#40514F'
-    ctx.beginPath()
-    ctx.rect(todayX - 18, chartArea.top, 36, 16)
-    ctx.fill()
-    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(todayX - 18, chartArea.top, 36, 16)
+    ctx.fillStyle = '#fff'
     ctx.font = 'bold 9px sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
@@ -80,7 +91,6 @@ const todayLinePlugin = (daysGone, daysInMonth) => ({
   }
 })
 
-// ── STAGE / OWNER MAPS ────────────────────────────────────────────────────────
 const RT_STAGES = {
   '2848593377': 'Opportunity Identified',
   '3049815540': 'Quote Required',
@@ -98,7 +108,6 @@ const OWNERS = {
   '363522561': 'Yvette Devoe',
 }
 
-// ── MOCK DATA ─────────────────────────────────────────────────────────────────
 const MOCK = {
   sales: {
     actual: 87400, budget: 150000,
@@ -130,23 +139,22 @@ const MOCK = {
     ],
     history: [44,50,43,45,38,36,39,31,28,27,23,20,17],
   },
-  meta: { month: '2026-05', rep: 'full-team', daysInMonth: 31, daysGone: 13, lastSynced: '2:28 PM' },
+  meta: { month: '2026-05', rep: 'full-team', daysInMonth: 31, daysGone: 26, lastSynced: '2:28 PM' },
 }
 
-// ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const [data, setData]                         = useState(MOCK)
-  const [loading, setLoading]                   = useState(false)
-  const [month, setMonth]                       = useState('2026-05')
-  const [rep, setRep]                           = useState('full-team')
-  const [drillBand, setDrillBand]               = useState(null)
-  const [drillCalls, setDrillCalls]             = useState(null)
-  const [drillPipeline, setDrillPipeline]       = useState(null)
+  const [data, setData]                             = useState(MOCK)
+  const [loading, setLoading]                       = useState(false)
+  const [month, setMonth]                           = useState('2026-05')
+  const [rep, setRep]                               = useState('full-team')
+  const [drillBand, setDrillBand]                   = useState(null)
+  const [drillCalls, setDrillCalls]                 = useState(null)
+  const [drillPipeline, setDrillPipeline]           = useState(null)
   const [drillPipelineTotal, setDrillPipelineTotal] = useState(0)
-  const [adminUnlocked, setAdminUnlocked]       = useState(false)
-  const [showPinModal, setShowPinModal]         = useState(false)
-  const [pin, setPin]                           = useState(['', '', '', ''])
-  const [pinError, setPinError]                 = useState('')
+  const [adminUnlocked, setAdminUnlocked]           = useState(false)
+  const [showPinModal, setShowPinModal]             = useState(false)
+  const [pin, setPin]                               = useState(['', '', '', ''])
+  const [pinError, setPinError]                     = useState('')
   const pinRefs = [useRef(), useRef(), useRef(), useRef()]
 
   const loadData = useCallback(async () => {
@@ -177,6 +185,7 @@ export default function Dashboard() {
   const salPace   = paceStatus(sales.actual, sales.budget, daysGone, daysInMonth)
   const forecast  = daysGone > 0 ? Math.round(sales.actual / daysGone * daysInMonth) : 0
   const monthPct  = Math.round(daysGone / daysInMonth * 100)
+  const tlPlugin  = todayLinePlugin(daysGone, daysInMonth)
 
   const chartDefaults = {
     responsive: true,
@@ -212,10 +221,15 @@ export default function Dashboard() {
     setDrillPipelineTotal(pipeline.actual || 0)
   }
 
+  // Pad all actuals to full month with NaN so x-axis spans full month
+  const salesData    = padActuals(sales.dailyActuals, daysInMonth)
+  const callsData    = padActuals(calls.dailyActuals, daysInMonth)
+  const visitsData   = padActuals(visits.dailyActuals, daysInMonth)
+  const pipelineData = padActuals(pipeline.dailyActuals, daysInMonth)
+
   return (
     <div className={styles.dashboard}>
 
-      {/* ── HEADER ── */}
       <header className={styles.header}>
         <div className={styles.brandRow}>
           <img src="/spoke-logo.png" alt="Spoke" className={styles.logoImg} />
@@ -246,10 +260,8 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* ── MAIN ── */}
       <main className={styles.main}>
 
-        {/* TOP CARD — Sales */}
         <section className={`${styles.card} ${styles.topCard}`}>
           <div className={styles.salesLeft}>
             <div>
@@ -278,11 +290,11 @@ export default function Dashboard() {
             </div>
             <div className={styles.mainChartWrap}>
               <Line
-                plugins={[todayLinePlugin(daysGone, daysInMonth)]}
+                plugins={[tlPlugin]}
                 data={{
                   labels,
                   datasets: [
-                    { data: sales.dailyActuals, borderColor: '#40514F', backgroundColor: 'transparent', tension: 0.32, borderWidth: 3, pointRadius: 0, spanGaps: false },
+                    { data: salesData, borderColor: '#40514F', backgroundColor: 'transparent', tension: 0.32, borderWidth: 3, pointRadius: 0, spanGaps: false },
                     { data: paceArray(sales.budget, daysInMonth), borderColor: '#BEDA81', borderDash: [4, 5], tension: 0, borderWidth: 2, pointRadius: 0 },
                   ],
                 }}
@@ -316,10 +328,8 @@ export default function Dashboard() {
           </aside>
         </section>
 
-        {/* BOTTOM GRID */}
         <section className={styles.bottomGrid}>
 
-          {/* CALLS */}
           <MetricCard
             icon={<PhoneIcon />}
             title="Outbound Phone Calls"
@@ -333,11 +343,11 @@ export default function Dashboard() {
           >
             <div className={styles.smallChartWrap}>
               <Line
-                plugins={[todayLinePlugin(daysGone, daysInMonth)]}
+                plugins={[tlPlugin]}
                 data={{
                   labels,
                   datasets: [
-                    { data: calls.dailyActuals, borderColor: '#40514F', backgroundColor: 'transparent', borderWidth: 2.5, tension: 0.35, pointRadius: 0, spanGaps: false },
+                    { data: callsData, borderColor: '#40514F', backgroundColor: 'transparent', borderWidth: 2.5, tension: 0.35, pointRadius: 0, spanGaps: false },
                     { data: paceArray(calls.target, daysInMonth), borderColor: '#BEDA81', borderDash: [4, 5], borderWidth: 1.7, pointRadius: 0 },
                   ],
                 }}
@@ -346,7 +356,6 @@ export default function Dashboard() {
             </div>
           </MetricCard>
 
-          {/* VISITS */}
           <MetricCard
             icon={<PeopleIcon />}
             title="Face to Face Visits"
@@ -359,11 +368,11 @@ export default function Dashboard() {
           >
             <div className={styles.smallChartWrap}>
               <Line
-                plugins={[todayLinePlugin(daysGone, daysInMonth)]}
+                plugins={[tlPlugin]}
                 data={{
                   labels,
                   datasets: [
-                    { data: visits.dailyActuals, borderColor: '#40514F', backgroundColor: 'transparent', borderWidth: 2.5, tension: 0.35, pointRadius: 0, spanGaps: false },
+                    { data: visitsData, borderColor: '#40514F', backgroundColor: 'transparent', borderWidth: 2.5, tension: 0.35, pointRadius: 0, spanGaps: false },
                     { data: paceArray(visits.target, daysInMonth), borderColor: '#BEDA81', borderDash: [4, 5], borderWidth: 1.7, pointRadius: 0 },
                   ],
                 }}
@@ -372,7 +381,6 @@ export default function Dashboard() {
             </div>
           </MetricCard>
 
-          {/* PIPELINE */}
           <MetricCard
             icon={<DollarIcon />}
             title="Added Value to Pipeline"
@@ -386,11 +394,11 @@ export default function Dashboard() {
           >
             <div className={styles.smallChartWrap}>
               <Bar
-                plugins={[todayLinePlugin(daysGone, daysInMonth)]}
+                plugins={[tlPlugin]}
                 data={{
                   labels,
                   datasets: [
-                    { data: pipeline.dailyActuals, backgroundColor: '#BEDA81', borderRadius: 3, barThickness: 5 },
+                    { data: pipelineData, backgroundColor: '#BEDA81', borderRadius: 3, barThickness: 5 },
                     { data: paceArray(pipeline.target, daysInMonth), type: 'line', borderColor: '#BEDA81', borderDash: [4, 5], borderWidth: 1.7, pointRadius: 0 },
                   ],
                 }}
@@ -402,7 +410,6 @@ export default function Dashboard() {
             </div>
           </MetricCard>
 
-          {/* DEAL AGE */}
           <article className={`${styles.card} ${styles.metricCard}`}>
             <div className={styles.metricHead}>
               <div className={styles.icon}><ClockIcon /></div>
@@ -457,7 +464,6 @@ export default function Dashboard() {
         <span>Times shown in NZT</span>
       </footer>
 
-      {/* ── DEAL BAND DRILL MODAL ── */}
       {drillBand && (
         <div className={styles.overlay} onClick={() => setDrillBand(null)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
@@ -472,9 +478,7 @@ export default function Dashboard() {
                     <div className={styles.dealName}>{deal.name}</div>
                     {deal.stage && <div className={styles.dealMeta}>{deal.stage}</div>}
                   </div>
-                  <div className={`${styles.dealBadge} ${deal.days > 15 ? styles.badgeWarn : styles.badgeOk}`}>
-                    {deal.days}d
-                  </div>
+                  <div className={`${styles.dealBadge} ${deal.days > 15 ? styles.badgeWarn : styles.badgeOk}`}>{deal.days}d</div>
                 </div>
               ))}
             </div>
@@ -485,7 +489,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── CALLS DRILL MODAL ── */}
       {drillCalls && (
         <div className={styles.overlay} onClick={() => setDrillCalls(null)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
@@ -516,7 +519,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── PIPELINE DRILL MODAL ── */}
       {drillPipeline && (
         <div className={styles.overlay} onClick={() => setDrillPipeline(null)}>
           <div className={styles.modal} style={{ width: '560px' }} onClick={e => e.stopPropagation()}>
@@ -552,7 +554,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── PIN MODAL ── */}
       {showPinModal && (
         <div className={styles.overlay} onClick={() => setShowPinModal(false)}>
           <div className={styles.modal} style={{ width: '300px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
@@ -585,7 +586,6 @@ export default function Dashboard() {
   )
 }
 
-// ── METRIC CARD COMPONENT ─────────────────────────────────────────────────────
 function MetricCard({ icon, title, actual, target, isMoney, daysGone, daysInMonth, todayPct, onDrill, children }) {
   const p = pct(actual, target)
   const pace = paceStatus(actual, target, daysGone, daysInMonth)
@@ -629,7 +629,6 @@ function MetricCard({ icon, title, actual, target, isMoney, daysGone, daysInMont
   )
 }
 
-// ── ICONS ─────────────────────────────────────────────────────────────────────
 const PhoneIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.1a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.45h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
