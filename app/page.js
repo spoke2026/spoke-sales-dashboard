@@ -105,18 +105,18 @@ const OWNERS = {
 
 // ── MOCK DATA ─────────────────────────────────────────────────────────────────
 const MOCK = {
-  sales:    { actual: 87400, budget: 150000, dailyActuals: [4200,8100,14300,19800,24500,31200,38900,44100,52000,61400,71200,78900,87400,...Array(18).fill(null)], lastMonthActual: 76200 },
-  calls:    { actual: 38, target: 60, details: [], dailyActuals: [2,4,6,7,9,11,14,16,18,21,24,27,30,...Array(18).fill(null)], lastMonth: 42 },
-  visits:   { actual: 11, target: 20, dailyActuals: [1,1,2,2,3,4,5,6,7,8,9,10,11,...Array(18).fill(null)], lastMonth: 9 },
-  pipeline: { actual: 124000, target: 200000, details: [], dailyActuals: [8000,14000,22000,31000,38000,48000,62000,74000,86000,98000,108000,118000,124000,...Array(18).fill(null)], lastMonth: 98000 },
-  dealAge:  { avgDays: 17, lastMonthAvg: 22, total: 10, bands: [
-    { label: '1–5 days',   min:1,  max:5,    count:2, deals:[{name:'Pivot Hort - Oilskins',days:3},{name:'Smedley #SO-00225',days:4}] },
-    { label: '6–10 days',  min:6,  max:10,   count:3, deals:[{name:'BK Developments',days:7},{name:'Seaview',days:8},{name:'Craigmore L FP',days:9}] },
-    { label: '11–20 days', min:11, max:20,   count:3, deals:[{name:'Craigmore Colleen',days:12},{name:'Craggy Range',days:14},{name:'Waikiwi Vets',days:18}] },
-    { label: '21+ days',   min:21, max:9999, count:2, deals:[{name:'Thornfield Estate',days:22},{name:'Alpine Dairy',days:28}] },
-  ], history: [44,50,43,45,38,36,39,31,28,27,23,20,17] },
-  targets:  { Ed: { calls: 35, visits: 12, pipeline: 120000 }, Mark: { calls: 25, visits: 8, pipeline: 80000 } },
-  meta:     { month: '2026-05', rep: 'full-team', daysInMonth: 31, daysGone: 26, lastSynced: '2:28 PM' },
+  sales:    { actual: 0, budget: 150000, dailyActuals: [], lastMonthActual: 0 },
+  calls:    { actual: 0, target: 0, details: [], dailyActuals: [], lastMonth: 0 },
+  visits:   { actual: 0, target: 0, dailyActuals: [], lastMonth: 0 },
+  pipeline: { actual: 0, target: 0, details: [], dailyActuals: [], lastMonth: 0 },
+  dealAge:  { avgDays: 0, lastMonthAvg: 0, total: 0, bands: [
+    { label: '1–5 days',   min:1,  max:5,    count:0, deals:[] },
+    { label: '6–10 days',  min:6,  max:10,   count:0, deals:[] },
+    { label: '11–20 days', min:11, max:20,   count:0, deals:[] },
+    { label: '21+ days',   min:21, max:9999, count:0, deals:[] },
+  ], history: [] },
+  targets:  { Ed: { calls: 0, visits: 0, pipeline: 0 }, Mark: { calls: 0, visits: 0, pipeline: 0 } },
+  meta:     { month: '2026-05', rep: 'full-team', daysInMonth: 31, daysGone: 0, lastSynced: 'Loading...' },
 }
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
