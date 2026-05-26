@@ -48,34 +48,32 @@ function paceArray(target, days) {
 
 // ── TODAY LINE PLUGIN ─────────────────────────────────────────────────────────
 const todayLinePlugin = (daysGone, daysInMonth) => ({
-  id: `todayLine_${daysGone}`,
-  afterDraw(chart) {
+  id: `tl_${daysGone}_${daysInMonth}`,
+  afterDatasetsDraw(chart) {
     const { ctx, chartArea, scales } = chart
     if (!chartArea || !scales.x) return
-    // Use the x scale to get the exact pixel for day index (daysGone - 1)
-    // The x axis has daysInMonth labels (0 to daysInMonth-1)
-    // daysGone-1 is the index of today
-    const todayIndex = daysGone - 1
-    const todayX = scales.x.getPixelForValue(todayIndex)
-    if (!todayX || isNaN(todayX)) return
+    const idx = daysGone - 1
+    const px = scales.x.getPixelForValue(idx)
+    const left = chartArea.left
+    const right = chartArea.right
+    const width = chartArea.right - chartArea.left
+
+    // Draw debug info on chart
     ctx.save()
+    ctx.fillStyle = 'red'
+    ctx.font = '10px sans-serif'
+    ctx.textAlign = 'left'
+    ctx.fillText(`idx:${idx} px:${Math.round(px)} left:${Math.round(left)} right:${Math.round(right)} w:${Math.round(width)}`, left, chartArea.top + 30)
+    ctx.restore()
+
+    // Draw line at calculated position
+    ctx.save()
+    ctx.strokeStyle = 'red'
+    ctx.lineWidth = 2
     ctx.beginPath()
-    ctx.strokeStyle = 'rgba(64,81,79,0.5)'
-    ctx.lineWidth = 1.5
-    ctx.setLineDash([4, 4])
-    ctx.moveTo(todayX, chartArea.top)
-    ctx.lineTo(todayX, chartArea.bottom)
+    ctx.moveTo(px, chartArea.top)
+    ctx.lineTo(px, chartArea.bottom)
     ctx.stroke()
-    ctx.setLineDash([])
-    ctx.fillStyle = '#40514F'
-    ctx.beginPath()
-    ctx.rect(todayX - 18, chartArea.top, 36, 16)
-    ctx.fill()
-    ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 9px sans-serif'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText('Today', todayX, chartArea.top + 8)
     ctx.restore()
   }
 })
