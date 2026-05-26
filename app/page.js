@@ -52,28 +52,27 @@ const todayLinePlugin = (daysGone, daysInMonth) => ({
   afterDatasetsDraw(chart) {
     const { ctx, chartArea, scales } = chart
     if (!chartArea || !scales.x) return
-    const idx = daysGone - 1
-    const px = scales.x.getPixelForValue(idx)
-    const left = chartArea.left
-    const right = chartArea.right
-    const width = chartArea.right - chartArea.left
-
-    // Draw debug info on chart
+    // The x axis renders daysInMonth labels evenly across chartArea
+    // Each day occupies (chartArea.width / daysInMonth) pixels
+    // Day N starts at: chartArea.left + (N-1) * dayWidth
+    const dayWidth = (chartArea.right - chartArea.left) / daysInMonth
+    const todayX = chartArea.left + (daysGone - 0.5) * dayWidth
     ctx.save()
-    ctx.fillStyle = 'red'
-    ctx.font = '10px sans-serif'
-    ctx.textAlign = 'left'
-    ctx.fillText(`idx:${idx} px:${Math.round(px)} left:${Math.round(left)} right:${Math.round(right)} w:${Math.round(width)}`, left, chartArea.top + 30)
-    ctx.restore()
-
-    // Draw line at calculated position
-    ctx.save()
-    ctx.strokeStyle = 'red'
-    ctx.lineWidth = 2
+    ctx.strokeStyle = 'rgba(64,81,79,0.55)'
+    ctx.lineWidth = 1.5
+    ctx.setLineDash([4, 4])
     ctx.beginPath()
-    ctx.moveTo(px, chartArea.top)
-    ctx.lineTo(px, chartArea.bottom)
+    ctx.moveTo(todayX, chartArea.top + 20)
+    ctx.lineTo(todayX, chartArea.bottom)
     ctx.stroke()
+    ctx.setLineDash([])
+    ctx.fillStyle = '#40514F'
+    ctx.fillRect(todayX - 18, chartArea.top, 36, 16)
+    ctx.fillStyle = '#fff'
+    ctx.font = 'bold 9px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('Today', todayX, chartArea.top + 8)
     ctx.restore()
   }
 })
