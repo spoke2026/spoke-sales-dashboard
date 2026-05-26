@@ -588,7 +588,6 @@
   background: rgba(255,255,255,0.8);
   border-radius: 2px;
 }
-
 .mobileMenu {
   display: none;
   flex-direction: column;
@@ -623,21 +622,21 @@
 }
 
 @media (max-width: 768px) {
+  html, body {
+    overflow-y: auto !important;
+    height: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
   .hamburger { display: flex; }
   .controls select,
   .controls .lockBtn,
   .sync { display: none; }
   .mobileMenu { display: flex; }
-
-  .header {
-    padding: 0 16px;
-    height: 52px;
-  }
+  .header { padding: 0 16px; height: 52px; }
   .brandRow { gap: 10px; }
   .logoImg { height: 18px; }
   .divider { display: none; }
   .header h1 { display: none; }
-
   .dashboard {
     height: auto;
     min-height: 100vh;
@@ -645,14 +644,12 @@
     padding: 12px;
     grid-template-rows: auto auto 1fr;
   }
-
   .main {
     display: flex;
     flex-direction: column;
     gap: 12px;
     min-height: auto;
   }
-
   .topCard {
     display: flex !important;
     flex-direction: column;
@@ -670,22 +667,17 @@
   .sideSummary > div { flex: 1; }
   .sideSummary strong { font-size: 22px; }
   .sideRule { display: none; }
-
   .bottomGrid {
     display: flex;
     flex-direction: column;
     gap: 12px;
   }
-
   .metricCard { padding: 16px; }
   .metricNumber { font-size: 40px !important; }
   .metricNumber.money { font-size: 32px !important; }
-
   .smallChartWrap { display: none; }
   .ageChartWrap { display: none; }
-
   .bigNumber { font-size: 52px !important; }
-
   .footer {
     flex-direction: column;
     gap: 4px;
