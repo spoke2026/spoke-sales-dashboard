@@ -28,3 +28,10 @@ html, body {
 }
 
 canvas { display: block; }
+@media (max-width: 768px) {
+  html, body {
+    overflow-y: auto !important;
+    height: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}

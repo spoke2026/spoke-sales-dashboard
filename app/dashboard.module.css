@@ -622,11 +622,7 @@
 }
 
 @media (max-width: 768px) {
-  html, body {
-    overflow-y: auto !important;
-    height: auto !important;
-    -webkit-overflow-scrolling: touch;
-  }
+  
   .hamburger { display: flex; }
   .controls select,
   .controls .lockBtn,
