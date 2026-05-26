@@ -14,6 +14,7 @@ ChartJS.register(
   BarElement, Title, Tooltip, Legend, Filler
 )
 
+// ── HELPERS ───────────────────────────────────────────────────────────────────
 function fmt(v) {
   if (!v || v === 0) return '$0'
   if (v >= 1000000) return '$' + (v / 1000000).toFixed(1) + 'M'
@@ -26,7 +27,7 @@ function pct(a, b) {
 }
 
 function paceStatus(actual, target, daysGone, daysInMonth) {
-  if (!daysGone) return { diff: 0, diffPct: 0, ahead: false }
+  if (!daysGone || !target) return { diff: 0, diffPct: 0, ahead: false }
   const expected = (daysGone / daysInMonth) * target
   const diff = actual - expected
   const diffPct = expected > 0 ? Math.round(Math.abs(diff) / expected * 100) : 0
@@ -45,8 +46,6 @@ function paceArray(target, days) {
   return Array.from({ length: days }, (_, i) => Math.round(target / days * (i + 1)))
 }
 
-// Pad actuals array to full month length with NaN (not null)
-// NaN causes Chart.js to skip drawing the point but KEEPS the x-axis position
 function padActuals(actuals, daysInMonth) {
   const padded = Array(daysInMonth).fill(NaN)
   if (!actuals) return padded
@@ -57,19 +56,14 @@ function padActuals(actuals, daysInMonth) {
 }
 
 // ── TODAY LINE PLUGIN ─────────────────────────────────────────────────────────
-// Strategy: use the x-axis scale min/max pixel range and map daysGone/daysInMonth
-// onto it proportionally. This works regardless of how Chart.js indexes data.
 const todayLinePlugin = (daysGone, daysInMonth) => ({
   id: `tl_${daysGone}_${daysInMonth}`,
   afterDatasetsDraw(chart) {
     const { ctx, chartArea, scales } = chart
     if (!chartArea || !scales.x) return
-    // The x-axis spans from its first to last tick pixel
-    // We want today's position as a fraction of the full month
     const xMin = scales.x.getPixelForValue(0)
     const xMax = scales.x.getPixelForValue(daysInMonth - 1)
     if (isNaN(xMin) || isNaN(xMax)) return
-    // Interpolate: day 1 = xMin, day daysInMonth = xMax
     const todayX = xMin + ((daysGone - 1) / (daysInMonth - 1)) * (xMax - xMin)
     ctx.save()
     ctx.strokeStyle = 'rgba(64,81,79,0.55)'
@@ -91,6 +85,7 @@ const todayLinePlugin = (daysGone, daysInMonth) => ({
   }
 })
 
+// ── MAPS ──────────────────────────────────────────────────────────────────────
 const RT_STAGES = {
   '2848593377': 'Opportunity Identified',
   '3049815540': 'Quote Required',
@@ -108,40 +103,23 @@ const OWNERS = {
   '363522561': 'Yvette Devoe',
 }
 
+// ── MOCK DATA ─────────────────────────────────────────────────────────────────
 const MOCK = {
-  sales: {
-    actual: 87400, budget: 150000,
-    dailyActuals: [4200,8100,14300,19800,24500,31200,38900,44100,52000,61400,71200,78900,87400,...Array(18).fill(null)],
-    lastMonthActual: 76200,
-  },
-  calls: {
-    actual: 38, target: 60, details: [],
-    dailyActuals: [2,4,6,7,9,11,14,16,18,21,24,27,30,...Array(18).fill(null)],
-    lastMonth: 42,
-  },
-  visits: {
-    actual: 11, target: 20,
-    dailyActuals: [1,1,2,2,3,4,5,6,7,8,9,10,11,...Array(18).fill(null)],
-    lastMonth: 9,
-  },
-  pipeline: {
-    actual: 124000, target: 200000, details: [],
-    dailyActuals: [8000,14000,22000,31000,38000,48000,62000,74000,86000,98000,108000,118000,124000,...Array(18).fill(null)],
-    lastMonth: 98000,
-  },
-  dealAge: {
-    avgDays: 17, lastMonthAvg: 22, total: 10,
-    bands: [
-      { label: '1–5 days',   min:1,  max:5,    count:2, deals:[{name:'Pivot Hort - Oilskins',days:3,stage:'Samples Sent'},{name:'Smedley #SO-00225',days:4,stage:'Waiting Stock'}] },
-      { label: '6–10 days',  min:6,  max:10,   count:3, deals:[{name:'BK Developments',days:7},{name:'Seaview #SO-00227',days:8},{name:'Craigmore L FP',days:9}] },
-      { label: '11–20 days', min:11, max:20,   count:3, deals:[{name:'Craigmore Colleen',days:12},{name:'Craggy Range FP',days:14},{name:'Waikiwi Vets',days:18}] },
-      { label: '21+ days',   min:21, max:9999, count:2, deals:[{name:'Thornfield Estate',days:22},{name:'Alpine Dairy',days:28}] },
-    ],
-    history: [44,50,43,45,38,36,39,31,28,27,23,20,17],
-  },
-  meta: { month: '2026-05', rep: 'full-team', daysInMonth: 31, daysGone: 26, lastSynced: '2:28 PM' },
+  sales:    { actual: 87400, budget: 150000, dailyActuals: [4200,8100,14300,19800,24500,31200,38900,44100,52000,61400,71200,78900,87400,...Array(18).fill(null)], lastMonthActual: 76200 },
+  calls:    { actual: 38, target: 60, details: [], dailyActuals: [2,4,6,7,9,11,14,16,18,21,24,27,30,...Array(18).fill(null)], lastMonth: 42 },
+  visits:   { actual: 11, target: 20, dailyActuals: [1,1,2,2,3,4,5,6,7,8,9,10,11,...Array(18).fill(null)], lastMonth: 9 },
+  pipeline: { actual: 124000, target: 200000, details: [], dailyActuals: [8000,14000,22000,31000,38000,48000,62000,74000,86000,98000,108000,118000,124000,...Array(18).fill(null)], lastMonth: 98000 },
+  dealAge:  { avgDays: 17, lastMonthAvg: 22, total: 10, bands: [
+    { label: '1–5 days',   min:1,  max:5,    count:2, deals:[{name:'Pivot Hort - Oilskins',days:3},{name:'Smedley #SO-00225',days:4}] },
+    { label: '6–10 days',  min:6,  max:10,   count:3, deals:[{name:'BK Developments',days:7},{name:'Seaview',days:8},{name:'Craigmore L FP',days:9}] },
+    { label: '11–20 days', min:11, max:20,   count:3, deals:[{name:'Craigmore Colleen',days:12},{name:'Craggy Range',days:14},{name:'Waikiwi Vets',days:18}] },
+    { label: '21+ days',   min:21, max:9999, count:2, deals:[{name:'Thornfield Estate',days:22},{name:'Alpine Dairy',days:28}] },
+  ], history: [44,50,43,45,38,36,39,31,28,27,23,20,17] },
+  targets:  { Ed: { calls: 35, visits: 12, pipeline: 120000 }, Mark: { calls: 25, visits: 8, pipeline: 80000 } },
+  meta:     { month: '2026-05', rep: 'full-team', daysInMonth: 31, daysGone: 26, lastSynced: '2:28 PM' },
 }
 
+// ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [data, setData]                             = useState(MOCK)
   const [loading, setLoading]                       = useState(false)
@@ -153,8 +131,12 @@ export default function Dashboard() {
   const [drillPipelineTotal, setDrillPipelineTotal] = useState(0)
   const [adminUnlocked, setAdminUnlocked]           = useState(false)
   const [showPinModal, setShowPinModal]             = useState(false)
+  const [showTargetModal, setShowTargetModal]       = useState(false)
+  const [targetSaving, setTargetSaving]             = useState(false)
+  const [targetMsg, setTargetMsg]                   = useState('')
   const [pin, setPin]                               = useState(['', '', '', ''])
   const [pinError, setPinError]                     = useState('')
+  const [editTargets, setEditTargets]               = useState({ Ed: { calls: 0, visits: 0, pipeline: 0 }, Mark: { calls: 0, visits: 0, pipeline: 0 } })
   const pinRefs = [useRef(), useRef(), useRef(), useRef()]
 
   const loadData = useCallback(async () => {
@@ -178,7 +160,7 @@ export default function Dashboard() {
     return () => clearInterval(interval)
   }, [loadData])
 
-  const { sales, calls, visits, pipeline, dealAge, meta } = data
+  const { sales, calls, visits, pipeline, dealAge, meta, targets } = data
   const { daysGone, daysInMonth } = meta
   const todayPct  = Math.round(daysGone / daysInMonth * 100)
   const labels    = dayLabels(daysInMonth, month)
@@ -199,6 +181,11 @@ export default function Dashboard() {
     y: { grid: { display: false }, border: { display: false }, ticks: { maxTicksLimit: 3, font: { size: 9 } } },
   }
 
+  const salesData    = padActuals(sales.dailyActuals,    daysInMonth)
+  const callsData    = padActuals(calls.dailyActuals,    daysInMonth)
+  const visitsData   = padActuals(visits.dailyActuals,   daysInMonth)
+  const pipelineData = padActuals(pipeline.dailyActuals, daysInMonth)
+
   function handlePinInput(i, val) {
     const next = [...pin]; next[i] = val; setPin(next)
     if (val && i < 3) pinRefs[i + 1].current?.focus()
@@ -216,20 +203,50 @@ export default function Dashboard() {
     }
   }
 
+  function openTargetModal() {
+    setEditTargets({
+      Ed:   { ...(targets?.Ed   || { calls: 0, visits: 0, pipeline: 0 }) },
+      Mark: { ...(targets?.Mark || { calls: 0, visits: 0, pipeline: 0 }) },
+    })
+    setTargetMsg('')
+    setShowTargetModal(true)
+  }
+
+  async function saveTargets() {
+    setTargetSaving(true)
+    setTargetMsg('')
+    try {
+      const res = await fetch('/api/targets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month, targets: editTargets }),
+      })
+      if (res.ok) {
+        setTargetMsg('Targets saved successfully')
+        setShowTargetModal(false)
+        loadData()
+      } else {
+        setTargetMsg('Failed to save. Please try again.')
+      }
+    } catch (e) {
+      setTargetMsg('Error saving targets.')
+    } finally {
+      setTargetSaving(false)
+    }
+  }
+
   function openDrillPipeline() {
     setDrillPipeline(pipeline.details || [])
     setDrillPipelineTotal(pipeline.actual || 0)
   }
 
-  // Pad all actuals to full month with NaN so x-axis spans full month
-  const salesData    = padActuals(sales.dailyActuals, daysInMonth)
-  const callsData    = padActuals(calls.dailyActuals, daysInMonth)
-  const visitsData   = padActuals(visits.dailyActuals, daysInMonth)
-  const pipelineData = padActuals(pipeline.dailyActuals, daysInMonth)
+  // Rep label for display
+  const repLabel = rep === 'ed' ? 'Ed Beatson' : rep === 'mark' ? 'Mark Beatson' : 'Full Team'
 
   return (
     <div className={styles.dashboard}>
 
+      {/* HEADER */}
       <header className={styles.header}>
         <div className={styles.brandRow}>
           <img src="/spoke-logo.png" alt="Spoke" className={styles.logoImg} />
@@ -253,6 +270,11 @@ export default function Dashboard() {
           >
             {adminUnlocked ? '🔓 Admin' : '🔒 Admin'}
           </button>
+          {adminUnlocked && (
+            <button className={styles.lockBtn} style={{ background: 'rgba(190,218,129,0.15)', borderColor: 'rgba(190,218,129,0.5)', color: '#BEDA81' }} onClick={openTargetModal}>
+              Edit targets · {repLabel}
+            </button>
+          )}
           <div className={styles.sync}>
             <span>{loading ? 'Syncing HubSpot...' : `Last synced from HubSpot · ${meta.lastSynced}`}</span>
             <i className={`${styles.dot} ${loading ? styles.dotPulse : ''}`} />
@@ -260,12 +282,14 @@ export default function Dashboard() {
         </div>
       </header>
 
+      {/* MAIN */}
       <main className={styles.main}>
 
+        {/* TOP CARD — Sales (always full team) */}
         <section className={`${styles.card} ${styles.topCard}`}>
           <div className={styles.salesLeft}>
             <div>
-              <h2 className={styles.sectionLabel}>Actual Sales vs Budget</h2>
+              <h2 className={styles.sectionLabel}>Actual Sales vs Budget {rep !== 'full-team' && <span style={{fontSize:'11px',fontWeight:400,textTransform:'none',letterSpacing:0}}>· Full team</span>}</h2>
               <div className={styles.bigNumber}>{fmt(sales.actual)}</div>
               <p className={styles.budgetLine}>of {fmt(sales.budget)} budget</p>
               <div className={styles.budgetPill}>
@@ -328,11 +352,13 @@ export default function Dashboard() {
           </aside>
         </section>
 
+        {/* BOTTOM GRID */}
         <section className={styles.bottomGrid}>
 
+          {/* CALLS */}
           <MetricCard
             icon={<PhoneIcon />}
-            title="Outbound Phone Calls"
+            title={`Outbound Calls${rep !== 'full-team' ? ' · ' + repLabel.split(' ')[0] : ''}`}
             actual={calls.actual}
             target={calls.target}
             isMoney={false}
@@ -356,9 +382,10 @@ export default function Dashboard() {
             </div>
           </MetricCard>
 
+          {/* VISITS */}
           <MetricCard
             icon={<PeopleIcon />}
-            title="Face to Face Visits"
+            title={`Face to Face Visits${rep !== 'full-team' ? ' · ' + repLabel.split(' ')[0] : ''}`}
             actual={visits.actual}
             target={visits.target}
             isMoney={false}
@@ -381,9 +408,10 @@ export default function Dashboard() {
             </div>
           </MetricCard>
 
+          {/* PIPELINE */}
           <MetricCard
             icon={<DollarIcon />}
-            title="Added Value to Pipeline"
+            title={`New Pipeline${rep !== 'full-team' ? ' · ' + repLabel.split(' ')[0] : ''}`}
             actual={pipeline.actual}
             target={pipeline.target}
             isMoney={true}
@@ -410,6 +438,7 @@ export default function Dashboard() {
             </div>
           </MetricCard>
 
+          {/* DEAL AGE */}
           <article className={`${styles.card} ${styles.metricCard}`}>
             <div className={styles.metricHead}>
               <div className={styles.icon}><ClockIcon /></div>
@@ -418,14 +447,10 @@ export default function Dashboard() {
             <div className={styles.metricMain}>
               <div>
                 <div className={styles.metricNumber}>{dealAge.avgDays}</div>
-                <div className={styles.daysText}>days · {dealAge.total || 0} active deals</div>
+                <div className={styles.daysText}>days · {dealAge.total || 0} deals</div>
               </div>
               <div className={styles.miniPct}>
-                <strong>
-                  {dealAge.lastMonthAvg > 0
-                    ? (dealAge.lastMonthAvg - dealAge.avgDays >= 0 ? '↓ ' : '↑ ') + Math.abs(dealAge.lastMonthAvg - dealAge.avgDays)
-                    : '—'}
-                </strong>
+                <strong>{dealAge.lastMonthAvg > 0 ? (dealAge.lastMonthAvg - dealAge.avgDays >= 0 ? '↓ ' : '↑ ') + Math.abs(dealAge.lastMonthAvg - dealAge.avgDays) : '—'}</strong>
                 vs<br />last month
               </div>
             </div>
@@ -434,25 +459,18 @@ export default function Dashboard() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', flex: 1 }}>
               {dealAge.bands.map((band, i) => (
-                <button
-                  key={i}
-                  onClick={() => setDrillBand(band)}
-                  style={{
-                    background: i === 3 && band.count > 0 ? 'rgba(198,92,46,0.1)' : 'rgba(64,81,79,0.06)',
-                    border: i === 3 && band.count > 0 ? '1px solid rgba(198,92,46,0.2)' : '1px solid transparent',
-                    borderRadius: '8px', padding: '6px 8px', cursor: 'pointer',
-                    textAlign: 'center', fontFamily: 'var(--font-sans)',
-                  }}
-                >
+                <button key={i} onClick={() => setDrillBand(band)} style={{
+                  background: i === 3 && band.count > 0 ? 'rgba(198,92,46,0.1)' : 'rgba(64,81,79,0.06)',
+                  border: i === 3 && band.count > 0 ? '1px solid rgba(198,92,46,0.2)' : '1px solid transparent',
+                  borderRadius: '8px', padding: '6px 8px', cursor: 'pointer', textAlign: 'center', fontFamily: 'var(--font-sans)',
+                }}>
                   <div style={{ fontSize: '9px', color: 'var(--muted)' }}>{band.label}</div>
                   <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', color: i === 3 && band.count > 0 ? 'var(--bad)' : 'var(--mineral)', lineHeight: 1 }}>{band.count}</div>
                   <div style={{ fontSize: '9px', color: 'var(--muted)' }}>deal{band.count !== 1 ? 's' : ''}</div>
                 </button>
               ))}
             </div>
-            <div style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '6px' }}>
-              Bespoke Ops · creation to Goods Shipped/Invoiced
-            </div>
+            <div style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '6px' }}>Bespoke Ops · excl. Back Order &amp; Samples</div>
           </article>
 
         </section>
@@ -464,23 +482,24 @@ export default function Dashboard() {
         <span>Times shown in NZT</span>
       </footer>
 
+      {/* DEAL BAND DRILL */}
       {drillBand && (
         <div className={styles.overlay} onClick={() => setDrillBand(null)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <h2>{drillBand.label} · {drillBand.count} deal{drillBand.count !== 1 ? 's' : ''}</h2>
             <p className={styles.modalSub}>Days from deal creation · Bespoke Operations · close date this month</p>
             <div className={styles.dealList}>
-              {drillBand.deals.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No deals in this range</div>
-              ) : drillBand.deals.map((deal, i) => (
-                <div key={i} className={styles.dealRow}>
-                  <div>
-                    <div className={styles.dealName}>{deal.name}</div>
-                    {deal.stage && <div className={styles.dealMeta}>{deal.stage}</div>}
+              {drillBand.deals.length === 0
+                ? <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No deals in this range</div>
+                : drillBand.deals.map((deal, i) => (
+                  <div key={i} className={styles.dealRow}>
+                    <div>
+                      <div className={styles.dealName}>{deal.name}</div>
+                      {deal.stage && <div className={styles.dealMeta}>{deal.stage}</div>}
+                    </div>
+                    <div className={`${styles.dealBadge} ${deal.days > 15 ? styles.badgeWarn : styles.badgeOk}`}>{deal.days}d</div>
                   </div>
-                  <div className={`${styles.dealBadge} ${deal.days > 15 ? styles.badgeWarn : styles.badgeOk}`}>{deal.days}d</div>
-                </div>
-              ))}
+                ))}
             </div>
             <div className={styles.modalActions}>
               <button className={styles.btnCancel} onClick={() => setDrillBand(null)}>Close</button>
@@ -489,28 +508,29 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* CALLS DRILL */}
       {drillCalls && (
         <div className={styles.overlay} onClick={() => setDrillCalls(null)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <h2>Outbound Calls · {drillCalls.length} connected this month</h2>
-            <p className={styles.modalSub}>Connected outbound calls · most recent first · click outside to close</p>
+            <p className={styles.modalSub}>Connected outbound calls · most recent first</p>
             <div className={styles.dealList}>
-              {drillCalls.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No calls found</div>
-              ) : drillCalls.map((call, i) => {
-                const nzt = new Date(call.date)
-                return (
-                  <div key={i} className={styles.dealRow}>
-                    <div>
-                      <div className={styles.dealName}>{call.title}</div>
-                      <div className={styles.dealMeta}>
-                        {nzt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', timeZone: 'Pacific/Auckland' })} · {nzt.toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit', timeZone: 'Pacific/Auckland' })}
+              {drillCalls.length === 0
+                ? <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No calls found</div>
+                : drillCalls.map((call, i) => {
+                  const nzt = new Date(call.date)
+                  return (
+                    <div key={i} className={styles.dealRow}>
+                      <div>
+                        <div className={styles.dealName}>{call.title}</div>
+                        <div className={styles.dealMeta}>
+                          {nzt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', timeZone: 'Pacific/Auckland' })} · {nzt.toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit', timeZone: 'Pacific/Auckland' })} · {OWNERS[call.owner] || 'Unknown'}
+                        </div>
                       </div>
+                      <div className={`${styles.dealBadge} ${styles.badgeOk}`}>Connected</div>
                     </div>
-                    <div className={`${styles.dealBadge} ${styles.badgeOk}`}>Connected</div>
-                  </div>
-                )
-              })}
+                  )
+                })}
             </div>
             <div className={styles.modalActions}>
               <button className={styles.btnCancel} onClick={() => setDrillCalls(null)}>Close</button>
@@ -519,58 +539,97 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* PIPELINE DRILL */}
       {drillPipeline && (
         <div className={styles.overlay} onClick={() => setDrillPipeline(null)}>
           <div className={styles.modal} style={{ width: '560px' }} onClick={e => e.stopPropagation()}>
-            <h2>New Pipeline · {drillPipeline.length} deals added this month</h2>
-            <p className={styles.modalSub}>Revenue Train pipeline · new deals created this month · click outside to close</p>
+            <h2>New Pipeline · {drillPipeline.length} deals this month</h2>
+            <p className={styles.modalSub}>Revenue Train · new deals created this month</p>
             <div className={styles.dealList}>
-              {drillPipeline.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No deals added this month</div>
-              ) : drillPipeline.map((deal, i) => {
-                const nzt = new Date(deal.date)
-                return (
-                  <div key={i} className={styles.dealRow}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className={styles.dealName}>{deal.name}</div>
-                      <div className={styles.dealMeta}>
-                        {RT_STAGES[deal.stage] || deal.stage} · {OWNERS[deal.owner] || 'Unknown'} · {nzt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', timeZone: 'Pacific/Auckland' })}
+              {drillPipeline.length === 0
+                ? <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No deals added this month</div>
+                : drillPipeline.map((deal, i) => {
+                  const nzt = new Date(deal.date)
+                  return (
+                    <div key={i} className={styles.dealRow}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className={styles.dealName}>{deal.name}</div>
+                        <div className={styles.dealMeta}>
+                          {RT_STAGES[deal.stage] || deal.stage} · {OWNERS[deal.owner] || 'Unknown'} · {nzt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', timeZone: 'Pacific/Auckland' })}
+                        </div>
+                      </div>
+                      <div className={`${styles.dealBadge} ${styles.badgeOk}`} style={{ marginLeft: '12px', flexShrink: 0 }}>
+                        {deal.amount > 0 ? `$${Math.round(deal.amount).toLocaleString()}` : 'No value'}
                       </div>
                     </div>
-                    <div className={`${styles.dealBadge} ${styles.badgeOk}`} style={{ marginLeft: '12px', flexShrink: 0 }}>
-                      {deal.amount > 0 ? `$${Math.round(deal.amount).toLocaleString()}` : 'No value'}
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
             </div>
             <div style={{ borderTop: '1px solid var(--line)', marginTop: '12px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
-                Total: <strong style={{ color: 'var(--ink)' }}>${drillPipelineTotal.toLocaleString()}</strong>
-              </span>
+              <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Total: <strong style={{ color: 'var(--ink)' }}>${drillPipelineTotal.toLocaleString()}</strong></span>
               <button className={styles.btnCancel} onClick={() => setDrillPipeline(null)}>Close</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* TARGET EDIT MODAL */}
+      {showTargetModal && (
+        <div className={styles.overlay} onClick={() => setShowTargetModal(false)}>
+          <div className={styles.modal} style={{ width: '480px' }} onClick={e => e.stopPropagation()}>
+            <h2>Edit Targets · {month}</h2>
+            <p className={styles.modalSub}>Set monthly targets for Ed and Mark. Team total is calculated automatically.</p>
+
+            {['Ed', 'Mark'].map(r => (
+              <div key={r} style={{ marginBottom: '20px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--ink)', marginBottom: '10px', paddingBottom: '6px', borderBottom: '1px solid var(--line)' }}>{r} Beatson</div>
+                <div className={styles.irow}>
+                  <label>Connected Calls</label>
+                  <input type="number" value={editTargets[r].calls}
+                    onChange={e => setEditTargets(prev => ({ ...prev, [r]: { ...prev[r], calls: parseInt(e.target.value) || 0 } }))} />
+                </div>
+                <div className={styles.irow}>
+                  <label>Face to Face Visits</label>
+                  <input type="number" value={editTargets[r].visits}
+                    onChange={e => setEditTargets(prev => ({ ...prev, [r]: { ...prev[r], visits: parseInt(e.target.value) || 0 } }))} />
+                </div>
+                <div className={styles.irow}>
+                  <label>Pipeline Value ($)</label>
+                  <input type="number" value={editTargets[r].pipeline}
+                    onChange={e => setEditTargets(prev => ({ ...prev, [r]: { ...prev[r], pipeline: parseInt(e.target.value) || 0 } }))} />
+                </div>
+              </div>
+            ))}
+
+            <div style={{ background: 'rgba(64,81,79,0.05)', borderRadius: '8px', padding: '12px', fontSize: '12px', color: 'var(--muted)' }}>
+              <strong style={{ color: 'var(--ink)' }}>Team totals (auto-calculated):</strong><br />
+              Calls: {editTargets.Ed.calls + editTargets.Mark.calls} · Visits: {editTargets.Ed.visits + editTargets.Mark.visits} · Pipeline: {fmt(editTargets.Ed.pipeline + editTargets.Mark.pipeline)}
+            </div>
+
+            {targetMsg && <div style={{ marginTop: '10px', fontSize: '12px', color: targetMsg.includes('success') ? 'var(--good)' : 'var(--bad)' }}>{targetMsg}</div>}
+
+            <div className={styles.modalActions}>
+              <button className={styles.btnCancel} onClick={() => setShowTargetModal(false)}>Cancel</button>
+              <button className={styles.btnSave} onClick={saveTargets} disabled={targetSaving}>
+                {targetSaving ? 'Saving...' : 'Save targets'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PIN MODAL */}
       {showPinModal && (
         <div className={styles.overlay} onClick={() => setShowPinModal(false)}>
           <div className={styles.modal} style={{ width: '300px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
             <h2>Admin access</h2>
-            <p className={styles.modalSub}>Enter your 4-digit PIN to edit targets</p>
+            <p className={styles.modalSub}>Enter your 4-digit PIN</p>
             <div className={styles.pinRow}>
               {[0, 1, 2, 3].map(i => (
-                <input
-                  key={i}
-                  ref={pinRefs[i]}
-                  type="password"
-                  maxLength={1}
-                  value={pin[i]}
+                <input key={i} ref={pinRefs[i]} type="password" maxLength={1} value={pin[i]}
                   className={styles.pinDigit}
                   onChange={e => handlePinInput(i, e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && checkPin()}
-                />
+                  onKeyDown={e => e.key === 'Enter' && checkPin()} />
               ))}
             </div>
             {pinError && <div className={styles.pinError}>{pinError}</div>}
@@ -586,14 +645,13 @@ export default function Dashboard() {
   )
 }
 
+// ── METRIC CARD ───────────────────────────────────────────────────────────────
 function MetricCard({ icon, title, actual, target, isMoney, daysGone, daysInMonth, todayPct, onDrill, children }) {
   const p = pct(actual, target)
   const pace = paceStatus(actual, target, daysGone, daysInMonth)
   const displayActual = isMoney ? fmt(actual) : actual
-  const displayTarget = isMoney ? fmt(target) : target
-  const daily = daysGone > 0
-    ? isMoney ? fmt(actual / daysGone) + '/day' : (actual / daysGone).toFixed(1) + '/day'
-    : '—'
+  const displayTarget = isMoney ? fmt(target) : (target || '—')
+  const daily = daysGone > 0 ? (isMoney ? fmt(actual / daysGone) + '/day' : (actual / daysGone).toFixed(1) + '/day') : '—'
 
   return (
     <article className={`${styles.card} ${styles.metricCard}`}>
@@ -603,25 +661,19 @@ function MetricCard({ icon, title, actual, target, isMoney, daysGone, daysInMont
       </div>
       <div className={styles.metricMain}>
         <div>
-          <div
-            className={`${styles.metricNumber} ${isMoney ? styles.money : ''}`}
+          <div className={`${styles.metricNumber} ${isMoney ? styles.money : ''}`}
             style={onDrill ? { cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '4px' } : {}}
-            onClick={onDrill}
-          >{displayActual}</div>
+            onClick={onDrill}>{displayActual}</div>
           <div className={styles.targetLine}>of <em>{displayTarget}</em> target</div>
         </div>
-        <div className={styles.miniPct}>
-          <strong>{p}%</strong>of target
-        </div>
+        <div className={styles.miniPct}><strong>{p}%</strong>of target</div>
       </div>
       <div className={styles.progress}>
         <span className={styles.progressFill} style={{ width: `${p}%` }} />
         <span className={styles.progressMarker} style={{ left: `${todayPct}%` }} />
       </div>
       <div className={styles.paceRow}>
-        <span className={pace.ahead ? styles.good : styles.bad}>
-          {pace.diffPct}% {pace.ahead ? 'ahead of' : 'behind'} pace
-        </span>
+        <span className={pace.ahead ? styles.good : styles.bad}>{pace.diffPct}% {pace.ahead ? 'ahead of' : 'behind'} pace</span>
         <span>Daily avg: {daily}</span>
       </div>
       {children}
@@ -629,24 +681,7 @@ function MetricCard({ icon, title, actual, target, isMoney, daysGone, daysInMont
   )
 }
 
-const PhoneIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.1a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.45h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-  </svg>
-)
-const PeopleIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-  </svg>
-)
-const DollarIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-  </svg>
-)
-const ClockIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-  </svg>
-)
+const PhoneIcon  = () => (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.1a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.45h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>)
+const PeopleIcon = () => (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>)
+const DollarIcon = () => (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>)
+const ClockIcon  = () => (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>)
