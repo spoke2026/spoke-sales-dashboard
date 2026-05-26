@@ -213,28 +213,32 @@ export default function Dashboard() {
     setShowTargetModal(true)
   }
 
-  async function saveTargets() {
-    setTargetSaving(true)
-    setTargetMsg('')
-    try {
-      const res = await fetch('/api/targets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ month, targets: editTargets }),
-      })
-      if (res.ok) {
-        setTargetMsg('Targets saved successfully')
+ async function saveTargets() {
+  setTargetSaving(true)
+  setTargetMsg('')
+  try {
+    const res = await fetch('/api/targets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ month, targets: editTargets }),
+    })
+    const json = await res.json()
+    if (res.ok && json.success) {
+      setTargetMsg('Saved!')
+      setTimeout(() => {
         setShowTargetModal(false)
+        setTargetMsg('')
         loadData()
-      } else {
-        setTargetMsg('Failed to save. Please try again.')
-      }
-    } catch (e) {
-      setTargetMsg('Error saving targets.')
-    } finally {
-      setTargetSaving(false)
+      }, 800)
+    } else {
+      setTargetMsg('Failed: ' + (json.error || res.status))
     }
+  } catch (e) {
+    setTargetMsg('Error: ' + e.message)
+  } finally {
+    setTargetSaving(false)
   }
+}
 
   function openDrillPipeline() {
     setDrillPipeline(pipeline.details || [])
