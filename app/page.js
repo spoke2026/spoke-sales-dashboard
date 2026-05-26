@@ -498,13 +498,13 @@ export default function Dashboard() {
               {drillCalls.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No calls found</div>
               ) : drillCalls.map((call, i) => {
-                const nzt = new Date(new Date(call.date).getTime() + 12 * 60 * 60 * 1000)
+                const nzt = new Date(call.date)
                 return (
                   <div key={i} className={styles.dealRow}>
                     <div>
                       <div className={styles.dealName}>{call.title}</div>
                       <div className={styles.dealMeta}>
-                        {nzt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })} · {nzt.toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit' })} · {OWNERS[call.owner] || 'Unknown'}
+                        {nzt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', timeZone: 'Pacific/Auckland' })} · {nzt.toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit', timeZone: 'Pacific/Auckland' })}
                       </div>
                     </div>
                     <div className={`${styles.dealBadge} ${styles.badgeOk}`}>Connected</div>
@@ -528,13 +528,13 @@ export default function Dashboard() {
               {drillPipeline.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No deals added this month</div>
               ) : drillPipeline.map((deal, i) => {
-                const nzt = new Date(new Date(deal.date).getTime() + 12 * 60 * 60 * 1000)
+                const nzt = new Date(deal.date)
                 return (
                   <div key={i} className={styles.dealRow}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div className={styles.dealName}>{deal.name}</div>
                       <div className={styles.dealMeta}>
-                        {RT_STAGES[deal.stage] || deal.stage} · {OWNERS[deal.owner] || 'Unknown'} · {nzt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' })}
+                        {RT_STAGES[deal.stage] || deal.stage} · {OWNERS[deal.owner] || 'Unknown'} · {nzt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', timeZone: 'Pacific/Auckland' })}
                       </div>
                     </div>
                     <div className={`${styles.dealBadge} ${styles.badgeOk}`} style={{ marginLeft: '12px', flexShrink: 0 }}>
