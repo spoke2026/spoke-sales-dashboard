@@ -135,6 +135,7 @@ export default function Dashboard() {
   const [targetSaving, setTargetSaving]             = useState(false)
   const [targetMsg, setTargetMsg]                   = useState('')
   const [pin, setPin]                               = useState(['', '', '', ''])
+  const [mobileMenuOpen, setMobileMenuOpen]         = useState(false)
   const [pinError, setPinError]                     = useState('')
   const [editTargets, setEditTargets]               = useState({ Ed: { calls: 0, visits: 0, pipeline: 0 }, Mark: { calls: 0, visits: 0, pipeline: 0 } })
   const pinRefs = [useRef(), useRef(), useRef(), useRef()]
@@ -251,7 +252,7 @@ export default function Dashboard() {
         <div className={styles.brandRow}>
           <img src="/spoke-logo.png" alt="Spoke" className={styles.logoImg} />
           <div className={styles.divider} />
-          <h1>Sales Dashboard</h1>
+          <h1>Sales Performance Dashboard</h1>
         </div>
         <div className={styles.controls}>
           <select value={month} onChange={e => setMonth(e.target.value)}>
@@ -279,8 +280,47 @@ export default function Dashboard() {
             <span>{loading ? 'Syncing HubSpot...' : `Last synced from HubSpot · ${meta.lastSynced}`}</span>
             <i className={`${styles.dot} ${loading ? styles.dotPulse : ''}`} />
           </div>
+          <button className={styles.hamburger} onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Menu">
+            <span /><span /><span />
+          </button>
         </div>
       </header>
+
+      {/* MOBILE MENU */}
+      {mobileMenuOpen && (
+        <div className={styles.mobileMenu}>
+          <div className={styles.mobileMenuRow}>
+            <label className={styles.mobileLabel}>Month</label>
+            <select value={month} onChange={e => { setMonth(e.target.value); setMobileMenuOpen(false) }}>
+              <option value="2026-05">May 2026</option>
+              <option value="2026-04">April 2026</option>
+              <option value="2026-03">March 2026</option>
+            </select>
+          </div>
+          <div className={styles.mobileMenuRow}>
+            <label className={styles.mobileLabel}>View</label>
+            <select value={rep} onChange={e => { setRep(e.target.value); setMobileMenuOpen(false) }}>
+              <option value="full-team">Full Team</option>
+              <option value="ed">Ed Beatson</option>
+              <option value="mark">Mark Beatson</option>
+            </select>
+          </div>
+          <div className={styles.mobileMenuRow}>
+            <button
+              className={`${styles.lockBtn} ${adminUnlocked ? styles.unlocked : ''}`}
+              onClick={() => { adminUnlocked ? setAdminUnlocked(false) : setShowPinModal(true); setMobileMenuOpen(false) }}
+            >
+              {adminUnlocked ? '🔓 Admin' : '🔒 Admin'}
+            </button>
+            {adminUnlocked && (
+              <button className={styles.lockBtn} style={{ background: 'rgba(190,218,129,0.15)', borderColor: 'rgba(190,218,129,0.5)', color: '#BEDA81' }}
+                onClick={() => { openTargetModal(); setMobileMenuOpen(false) }}>
+                Edit targets
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* MAIN */}
       <main className={styles.main}>
