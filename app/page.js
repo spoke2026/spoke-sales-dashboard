@@ -48,27 +48,30 @@ function paceArray(target, days) {
 
 // ── TODAY LINE PLUGIN ─────────────────────────────────────────────────────────
 const todayLinePlugin = (daysGone, daysInMonth) => ({
-  id: `tl_${daysGone}_${daysInMonth}`,
-  afterDatasetsDraw(chart) {
+  id: `todayLine_${daysGone}`,
+  afterDraw(chart) {
     const { ctx, chartArea, scales } = chart
     if (!chartArea || !scales.x) return
-    // The x axis renders daysInMonth labels evenly across chartArea
-    // Each day occupies (chartArea.width / daysInMonth) pixels
-    // Day N starts at: chartArea.left + (N-1) * dayWidth
-    const dayWidth = (chartArea.right - chartArea.left) / daysInMonth
-    const todayX = chartArea.left + (daysGone - 0.5) * dayWidth
+    // Use the x scale to get the exact pixel for day index (daysGone - 1)
+    // The x axis has daysInMonth labels (0 to daysInMonth-1)
+    // daysGone-1 is the index of today
+    const todayIndex = daysGone - 1
+    const todayX = scales.x.getPixelForValue(todayIndex)
+    if (!todayX || isNaN(todayX)) return
     ctx.save()
-    ctx.strokeStyle = 'rgba(64,81,79,0.55)'
+    ctx.beginPath()
+    ctx.strokeStyle = 'rgba(64,81,79,0.5)'
     ctx.lineWidth = 1.5
     ctx.setLineDash([4, 4])
-    ctx.beginPath()
-    ctx.moveTo(todayX, chartArea.top + 20)
+    ctx.moveTo(todayX, chartArea.top)
     ctx.lineTo(todayX, chartArea.bottom)
     ctx.stroke()
     ctx.setLineDash([])
     ctx.fillStyle = '#40514F'
-    ctx.fillRect(todayX - 18, chartArea.top, 36, 16)
-    ctx.fillStyle = '#fff'
+    ctx.beginPath()
+    ctx.rect(todayX - 18, chartArea.top, 36, 16)
+    ctx.fill()
+    ctx.fillStyle = '#ffffff'
     ctx.font = 'bold 9px sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
