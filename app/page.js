@@ -123,7 +123,7 @@ const MOCK = {
 export default function Dashboard() {
   const [data, setData]                             = useState(MOCK)
   const [loading, setLoading]                       = useState(false)
-  const [month, setMonth]                           = useState('2026-05')
+  const [month, setMonth]                           = useState(() => new Date().toISOString().slice(0, 7))
   const [rep, setRep]                               = useState('full-team')
   const [drillBand, setDrillBand]                   = useState(null)
   const [drillCalls, setDrillCalls]                 = useState(null)
@@ -260,10 +260,15 @@ export default function Dashboard() {
         </div>
         <div className={styles.controls}>
           <select value={month} onChange={e => setMonth(e.target.value)}>
-            <option value="2026-05">May 2026</option>
-            <option value="2026-04">April 2026</option>
-            <option value="2026-03">March 2026</option>
-          </select>
+  {Array.from({ length: 12 }, (_, i) => {
+    const d = new Date()
+    d.setDate(1)
+    d.setMonth(d.getMonth() - i)
+    const val = d.toISOString().slice(0, 7)
+    const label = d.toLocaleDateString('en-NZ', { month: 'long', year: 'numeric' })
+    return <option key={val} value={val}>{label}</option>
+  })}
+</select>
           <select value={rep} onChange={e => setRep(e.target.value)}>
             <option value="full-team">Full Team</option>
             <option value="ed">Ed Beatson</option>
