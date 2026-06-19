@@ -11,8 +11,6 @@ import {
 } from '@/lib/hubspot'
 import { getTargets } from '@/lib/supabase'
 
-const SALES_BUDGET = 150000
-
 // Hardcoded owner IDs — avoids needing owners API scope
 const REP_OWNER_IDS = {
   'ed':   ['27034621'],
@@ -32,8 +30,9 @@ export async function GET(request) {
     const now         = new Date()
     const daysGone    = now > monthEnd ? daysInMonth : now < monthStart ? 0 : now.getDate()
 
-    // Get targets from Supabase
+    // Get targets from Supabase (includes salesBudget)
     const targets = await getTargets(month)
+    const salesBudget = targets.salesBudget || 60000
 
     // Determine which rep key to use for targets
     const repKey     = rep === 'ed' ? 'Ed' : rep === 'mark' ? 'Mark' : 'total'
@@ -54,7 +53,7 @@ export async function GET(request) {
     const response = {
       sales: {
         actual:          sales.total,
-        budget:          SALES_BUDGET,
+        budget:          salesBudget,
         dailyActuals:    sales.dailyActuals,
         byOwner:         sales.byOwner,
         lastMonthActual: 0,

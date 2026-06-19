@@ -138,6 +138,7 @@ export default function Dashboard() {
   const [mobileMenuOpen, setMobileMenuOpen]         = useState(false)
   const [pinError, setPinError]                     = useState('')
   const [editTargets, setEditTargets]               = useState({ Ed: { calls: 0, visits: 0, pipeline: 0 }, Mark: { calls: 0, visits: 0, pipeline: 0 } })
+  const [editSalesBudget, setEditSalesBudget]       = useState(60000)
   const pinRefs = [useRef(), useRef(), useRef(), useRef()]
 
   const loadData = useCallback(async () => {
@@ -209,6 +210,7 @@ export default function Dashboard() {
       Ed:   { ...(targets?.Ed   || { calls: 0, visits: 0, pipeline: 0 }) },
       Mark: { ...(targets?.Mark || { calls: 0, visits: 0, pipeline: 0 }) },
     })
+    setEditSalesBudget(sales?.budget || 60000)
     setTargetMsg('')
     setShowTargetModal(true)
   }
@@ -220,7 +222,7 @@ export default function Dashboard() {
     const res = await fetch('/api/targets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ month, targets: editTargets }),
+      body: JSON.stringify({ month, targets: editTargets, salesBudget: editSalesBudget }),
     })
     const json = await res.json()
     if (res.ok && json.success) {
@@ -628,6 +630,15 @@ export default function Dashboard() {
           <div className={styles.modal} style={{ width: '480px' }} onClick={e => e.stopPropagation()}>
             <h2>Edit Targets · {month}</h2>
             <p className={styles.modalSub}>Set monthly targets for Ed and Mark. Team total is calculated automatically.</p>
+
+            <div style={{ marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid var(--line)' }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--ink)', marginBottom: '10px' }}>Sales Budget (Full Team)</div>
+              <div className={styles.irow}>
+                <label>Monthly Budget ($)</label>
+                <input type="number" value={editSalesBudget}
+                  onChange={e => setEditSalesBudget(parseInt(e.target.value) || 0)} />
+              </div>
+            </div>
 
             {['Ed', 'Mark'].map(r => (
               <div key={r} style={{ marginBottom: '20px' }}>
