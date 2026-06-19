@@ -1,0 +1,37 @@
+:root {
+  --mineral: #40514F;
+  --zest: #BEDA81;
+  --stone: #EDEDE1;
+  --white: #FFFFFF;
+  --ink: #2F3F3D;
+  --muted: rgba(64, 81, 79, 0.64);
+  --line: rgba(64, 81, 79, 0.14);
+  --surface: #F8F8F1;
+  --good: #5D873E;
+  --bad: #C65C2E;
+  --shadow: 0 18px 44px rgba(30, 42, 40, 0.10);
+  --radius: 22px;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-serif: 'DM Serif Display', serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background: radial-gradient(circle at 50% 5%, rgba(255,255,255,.76), transparent 34%), var(--stone);
+}
+
+canvas { display: block; }
+@media (max-width: 768px) {
+  html, body {
+    overflow-y: auto !important;
+    height: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
