@@ -47,6 +47,29 @@ function paceArray(target, days) {
   return Array.from({ length: days }, (_, i) => Math.round(target / days * (i + 1)))
 }
 
+// Shared month-option list for both the desktop and mobile month selectors, so
+// the two can never drift. Descending chronological: most-future first, current
+// in the middle, most-past last.
+// NB: val is built from LOCAL date parts, not d.toISOString(). toISOString
+// converts to UTC, which on an ahead-of-UTC timezone (NZ, UTC+12/13) rolls a
+// "1st of month" date back into the previous month for any load before midday,
+// leaving val a month behind label. That mismatch could save targets against the
+// wrong month, so val and label are both derived from the same local date.
+function buildMonthOptions(monthsAhead = 12, monthsBack = 12) {
+  const opts = []
+  for (let offset = monthsAhead; offset >= -monthsBack; offset--) {
+    const d = new Date()
+    d.setDate(1)
+    d.setMonth(d.getMonth() + offset)
+    const y = d.getFullYear()
+    const mo = String(d.getMonth() + 1).padStart(2, '0')
+    const val = y + '-' + mo
+    const label = d.toLocaleDateString('en-NZ', { month: 'long', year: 'numeric' })
+    opts.push({ val, label })
+  }
+  return opts
+}
+
 function padActuals(actuals, daysInMonth) {
   const padded = Array(daysInMonth).fill(NaN)
   if (!actuals) return padded
@@ -124,7 +147,7 @@ const MOCK = {
 export default function Dashboard() {
   const [data, setData]                             = useState(MOCK)
   const [loading, setLoading]                       = useState(false)
-  const [month, setMonth]                           = useState(() => new Date().toISOString().slice(0, 7))
+  const [month, setMonth]                           = useState(() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') })
   const [rep, setRep]                               = useState('full-team')
   const [drillBand, setDrillBand]                   = useState(null)
   const [drillCalls, setDrillCalls]                 = useState(null)
@@ -340,14 +363,9 @@ export default function Dashboard() {
         </div>
         <div className={styles.controls}>
           <select value={month} onChange={e => setMonth(e.target.value)}>
-  {Array.from({ length: 12 }, (_, i) => {
-    const d = new Date()
-    d.setDate(1)
-    d.setMonth(d.getMonth() - i)
-    const val = d.toISOString().slice(0, 7)
-    const label = d.toLocaleDateString('en-NZ', { month: 'long', year: 'numeric' })
-    return <option key={val} value={val}>{label}</option>
-  })}
+  {buildMonthOptions().map(({ val, label }) => (
+    <option key={val} value={val}>{label}</option>
+  ))}
 </select>
           <select value={rep} onChange={e => setRep(e.target.value)}>
             <option value="full-team">Full Team</option>
@@ -378,9 +396,9 @@ export default function Dashboard() {
           <div className={styles.mobileMenuRow}>
             <label className={styles.mobileLabel}>Month</label>
             <select value={month} onChange={e => { setMonth(e.target.value); setMobileMenuOpen(false) }}>
-              <option value="2026-05">May 2026</option>
-              <option value="2026-04">April 2026</option>
-              <option value="2026-03">March 2026</option>
+              {buildMonthOptions().map(({ val, label }) => (
+                <option key={val} value={val}>{label}</option>
+              ))}
             </select>
           </div>
           <div className={styles.mobileMenuRow}>
