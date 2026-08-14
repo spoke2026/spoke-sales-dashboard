@@ -9,7 +9,8 @@ import {
   getPipeline,
   getDealAge,
 } from '@/lib/hubspot'
-import { getTargets } from '@/lib/supabase'
+import { getTargets } from '@/lib/targets'
+import { createClient } from '@/lib/supabase/server'
 
 // Hardcoded owner IDs — avoids needing owners API scope
 const REP_OWNER_IDS = {
@@ -19,6 +20,15 @@ const REP_OWNER_IDS = {
 
 export async function GET(request) {
   try {
+    // Require a valid session — read targets AS the logged-in user so RLS is
+    // exercised (authenticated SELECT). No session → 401 JSON (not an HTML
+    // redirect); /api is a middleware passthrough.
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Not signed in' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const month = searchParams.get('month') || new Date().toISOString().slice(0, 7)
     const rep   = searchParams.get('rep')   || 'full-team'
@@ -30,8 +40,8 @@ export async function GET(request) {
     const now         = new Date()
     const daysGone    = now > monthEnd ? daysInMonth : now < monthStart ? 0 : now.getDate()
 
-    // Get targets from Supabase (includes salesBudget)
-    const targets = await getTargets(month)
+    // Get targets from Supabase via the authenticated session (includes salesBudget)
+    const targets = await getTargets(supabase, month)
     const salesBudget = targets.salesBudget || 60000
 
     // Determine which rep key to use for targets

@@ -1,4 +1,4 @@
-import { DM_Sans, DM_Serif_Display } from 'next/font/google'
+import { DM_Sans, DM_Serif_Display, DM_Mono } from 'next/font/google'
 import './globals.css'
 
 const dmSans = DM_Sans({
@@ -14,6 +14,12 @@ const dmSerif = DM_Serif_Display({
   variable: '--font-serif',
 })
 
+const dmMono = DM_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono',
+})
+
 export const metadata = {
   title: 'Spoke Sales Dashboard',
   description: 'Live sales performance dashboard',
@@ -21,7 +27,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${dmSerif.variable}`}>
+    <html lang="en" className={`${dmSans.variable} ${dmSerif.variable} ${dmMono.variable}`}>
       <body>{children}</body>
     </html>
   )

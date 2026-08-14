@@ -1,0 +1,125 @@
+/* Login page owns its own scroll context: globals.css sets body overflow:hidden,
+   so this page re-establishes a scrollable, centred layout. */
+.page {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.7), transparent 40%), var(--stone);
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(30, 42, 40, 0.12);
+  padding: 40px;
+}
+
+.logoLockup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #243735, var(--mineral));
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+}
+
+.logo {
+  height: 24px;
+  width: auto;
+  display: block;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 1.1;
+  color: var(--mineral);
+  margin: 0 0 8px;
+}
+
+.sub {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 28px;
+  line-height: 1.5;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.alert {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(198, 92, 46, 0.1);
+  color: var(--bad);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.input {
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 0 12px;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.input:focus {
+  border-color: var(--mineral);
+  box-shadow: 0 0 0 3px var(--zest);
+}
+
+.button {
+  height: 40px;
+  margin-top: 4px;
+  background: var(--mineral);
+  color: var(--stone);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  outline: none;
+  transition: background 0.12s, box-shadow 0.12s;
+}
+
+.button:hover:not(:disabled) { background: #354644; }
+.button:focus-visible { box-shadow: 0 0 0 3px var(--zest); }
+.button:disabled { opacity: 0.7; cursor: default; }
+
+@media (max-width: 600px) {
+  .card { padding: 28px 24px; }
+  .title { font-size: 26px; }
+}

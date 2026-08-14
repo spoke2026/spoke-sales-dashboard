@@ -9,7 +9,7 @@ Live sales performance dashboard pulling real-time data from HubSpot. Built with
 - Month and rep filters
 - Interactive Chart.js graphs with hover tooltips
 - Deal age drill-down by age band
-- Admin PIN to protect target editing
+- Per-person Supabase sign-in; target editing restricted to the admin, enforced by RLS
 
 ---
 
@@ -33,7 +33,8 @@ Edit `.env.local` and fill in your values:
 
 ```
 HUBSPOT_API_KEY=pat-ap1-your-service-key-here
-NEXT_PUBLIC_ADMIN_PIN=1234
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 HUBSPOT_BESPOKE_PIPELINE_ID=1663955429
 HUBSPOT_REVENUE_TRAIN_PIPELINE_ID=1691758052
 HUBSPOT_GOODS_SHIPPED_STAGE_ID=2795435483
@@ -79,7 +80,8 @@ In your Vercel project: **Settings > Environment Variables**
 | Name | Value |
 |------|-------|
 | `HUBSPOT_API_KEY` | `pat-ap1-your-key-here` |
-| `NEXT_PUBLIC_ADMIN_PIN` | `1234` |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://your-project.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `your-anon-key` |
 | `HUBSPOT_BESPOKE_PIPELINE_ID` | `1663955429` |
 | `HUBSPOT_REVENUE_TRAIN_PIPELINE_ID` | `1691758052` |
 | `HUBSPOT_GOODS_SHIPPED_STAGE_ID` | `2795435483` |

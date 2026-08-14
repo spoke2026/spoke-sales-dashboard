@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.106.2",
     "chart.js": "^4.4.2",
     "next": "14.2.3",

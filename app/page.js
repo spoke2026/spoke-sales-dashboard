@@ -7,6 +7,7 @@ import {
   BarElement, Title, Tooltip, Legend, Filler,
 } from 'chart.js'
 import { Line, Bar } from 'react-chartjs-2'
+import { createClient } from '@/lib/supabase/client'
 import styles from './dashboard.module.css'
 
 ChartJS.register(
@@ -129,17 +130,19 @@ export default function Dashboard() {
   const [drillCalls, setDrillCalls]                 = useState(null)
   const [drillPipeline, setDrillPipeline]           = useState(null)
   const [drillPipelineTotal, setDrillPipelineTotal] = useState(0)
-  const [adminUnlocked, setAdminUnlocked]           = useState(false)
-  const [showPinModal, setShowPinModal]             = useState(false)
+  const [isAdmin, setIsAdmin]                       = useState(false)
+  const [userEmail, setUserEmail]                   = useState('')
   const [showTargetModal, setShowTargetModal]       = useState(false)
   const [targetSaving, setTargetSaving]             = useState(false)
   const [targetMsg, setTargetMsg]                   = useState('')
-  const [pin, setPin]                               = useState(['', '', '', ''])
+  const [targetMsgType, setTargetMsgType]           = useState('') // 'success' | 'error'
   const [mobileMenuOpen, setMobileMenuOpen]         = useState(false)
-  const [pinError, setPinError]                     = useState('')
   const [editTargets, setEditTargets]               = useState({ Ed: { calls: 0, visits: 0, pipeline: 0 }, Mark: { calls: 0, visits: 0, pipeline: 0 } })
   const [editSalesBudget, setEditSalesBudget]       = useState(60000)
-  const pinRefs = [useRef(), useRef(), useRef(), useRef()]
+  const [fieldErrors, setFieldErrors]               = useState({})
+  const panelRef      = useRef(null)
+  const firstFieldRef = useRef(null)
+  const editBtnRef    = useRef(null)
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -161,6 +164,28 @@ export default function Dashboard() {
     const interval = setInterval(loadData, 15 * 60 * 1000)
     return () => clearInterval(interval)
   }, [loadData])
+
+  // Resolve the signed-in user. isAdmin is a COSMETIC flag: it only decides
+  // whether to render the admin affordance. The write path is authorised
+  // server-side via rpc('is_admin') + RLS, never by this flag.
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setUserEmail(user.email || '')
+        setIsAdmin((user.email || '').toLowerCase() === 'edward@spoke.nz')
+      }
+    })
+  }, [])
+
+  // Edit panel: focus the first field on open; restore focus to the trigger on close.
+  useEffect(() => {
+    if (showTargetModal) {
+      firstFieldRef.current?.focus()
+    } else {
+      editBtnRef.current?.focus()
+    }
+  }, [showTargetModal])
 
   const { sales, calls, visits, pipeline, dealAge, meta, targets } = data
   const { daysGone, daysInMonth } = meta
@@ -188,21 +213,10 @@ export default function Dashboard() {
   const visitsData   = padActuals(visits.dailyActuals,   daysInMonth)
   const pipelineData = padActuals(pipeline.dailyActuals, daysInMonth)
 
-  function handlePinInput(i, val) {
-    const next = [...pin]; next[i] = val; setPin(next)
-    if (val && i < 3) pinRefs[i + 1].current?.focus()
-  }
-
-  function checkPin() {
-    const entered = pin.join('')
-    const correct = process.env.NEXT_PUBLIC_ADMIN_PIN || '1234'
-    if (entered === correct) {
-      setAdminUnlocked(true); setShowPinModal(false)
-      setPin(['', '', '', '']); setPinError('')
-    } else {
-      setPinError('Incorrect PIN')
-      setPin(['', '', '', '']); pinRefs[0].current?.focus()
-    }
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    window.location.assign('/login')
   }
 
   function openTargetModal() {
@@ -211,36 +225,91 @@ export default function Dashboard() {
       Mark: { ...(targets?.Mark || { calls: 0, visits: 0, pipeline: 0 }) },
     })
     setEditSalesBudget(sales?.budget || 60000)
+    setFieldErrors({})
     setTargetMsg('')
+    setTargetMsgType('')
     setShowTargetModal(true)
   }
 
- async function saveTargets() {
-  setTargetSaving(true)
-  setTargetMsg('')
-  try {
-    const res = await fetch('/api/targets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ month, targets: editTargets, salesBudget: editSalesBudget }),
-    })
-    const json = await res.json()
-    if (res.ok && json.success) {
-      setTargetMsg('Saved!')
-      setTimeout(() => {
-        setShowTargetModal(false)
-        setTargetMsg('')
-        loadData()
-      }, 800)
-    } else {
-      setTargetMsg('Failed: ' + (json.error || res.status))
-    }
-  } catch (e) {
-    setTargetMsg('Error: ' + e.message)
-  } finally {
-    setTargetSaving(false)
+  function closeTargetModal() {
+    setShowTargetModal(false)
   }
-}
+
+  // Focus trap + Escape for the edit panel.
+  function onPanelKeyDown(e) {
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      closeTargetModal()
+      return
+    }
+    if (e.key === 'Tab' && panelRef.current) {
+      const focusable = panelRef.current.querySelectorAll(
+        'input, button, [tabindex]:not([tabindex="-1"])'
+      )
+      if (focusable.length === 0) return
+      const first = focusable[0]
+      const last  = focusable[focusable.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus()
+      }
+    }
+  }
+
+  // Values must be integers of 0 or more. Blank ('') and negatives are invalid.
+  function validateTargets() {
+    const errs = {}
+    const okInt = v => Number.isInteger(v) && v >= 0
+    if (!okInt(editSalesBudget)) errs.salesBudget = true
+    for (const r of ['Ed', 'Mark']) {
+      if (!okInt(editTargets[r].calls))    errs[`${r}.calls`]    = true
+      if (!okInt(editTargets[r].visits))   errs[`${r}.visits`]   = true
+      if (!okInt(editTargets[r].pipeline)) errs[`${r}.pipeline`] = true
+    }
+    setFieldErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
+  async function saveTargets() {
+    if (!validateTargets()) return
+    setTargetSaving(true)
+    setTargetMsg('')
+    setTargetMsgType('')
+    try {
+      const res = await fetch('/api/targets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month, targets: editTargets, salesBudget: editSalesBudget }),
+      })
+      if (res.status === 401) { window.location.assign('/login'); return }
+      if (res.status === 403) {
+        setTargetMsgType('error')
+        setTargetMsg('You do not have permission to edit targets.')
+        setTargetSaving(false)
+        return
+      }
+      const json = await res.json()
+      if (res.ok && json.success) {
+        setTargetMsgType('success')
+        setTargetMsg('Targets saved')
+        setTimeout(() => {
+          setShowTargetModal(false)
+          setTargetMsg('')
+          setTargetMsgType('')
+          loadData()
+        }, 800)
+      } else {
+        setTargetMsgType('error')
+        setTargetMsg("We couldn't save the targets. Try again.")
+      }
+    } catch (e) {
+      setTargetMsgType('error')
+      setTargetMsg("We couldn't save the targets. Try again.")
+    } finally {
+      setTargetSaving(false)
+    }
+  }
 
   function openDrillPipeline() {
     setDrillPipeline(pipeline.details || [])
@@ -249,6 +318,15 @@ export default function Dashboard() {
 
   // Rep label for display
   const repLabel = rep === 'ed' ? 'Ed Beatson' : rep === 'mark' ? 'Mark Beatson' : 'Full Team'
+
+  // Edit-panel helpers
+  const monthLabel = new Date(month + '-01T00:00:00').toLocaleDateString('en-NZ', { month: 'long', year: 'numeric' })
+  const num = v => (typeof v === 'number' && Number.isFinite(v)) ? v : 0
+  const fmtDollars = v => '$' + num(v).toLocaleString('en-NZ')
+  const teamCalls    = num(editTargets.Ed.calls)    + num(editTargets.Mark.calls)
+  const teamVisits   = num(editTargets.Ed.visits)   + num(editTargets.Mark.visits)
+  const teamPipeline = num(editTargets.Ed.pipeline) + num(editTargets.Mark.pipeline)
+  const parseField = val => val === '' ? '' : parseInt(val, 10)
 
   return (
     <div className={styles.dashboard}>
@@ -276,17 +354,14 @@ export default function Dashboard() {
             <option value="ed">Ed Beatson</option>
             <option value="mark">Mark Beatson</option>
           </select>
-          <button
-            className={`${styles.lockBtn} ${adminUnlocked ? styles.unlocked : ''}`}
-            onClick={() => adminUnlocked ? setAdminUnlocked(false) : setShowPinModal(true)}
-          >
-            {adminUnlocked ? '🔓 Admin' : '🔒 Admin'}
-          </button>
-          {adminUnlocked && (
-            <button className={styles.lockBtn} style={{ background: 'rgba(190,218,129,0.15)', borderColor: 'rgba(190,218,129,0.5)', color: '#BEDA81' }} onClick={openTargetModal}>
-              Edit targets · {repLabel}
+          {isAdmin && (
+            <button ref={editBtnRef} className={styles.editBtn} onClick={openTargetModal}>
+              Edit targets
             </button>
           )}
+          <button className={styles.signOutBtn} onClick={handleSignOut}>
+            Sign out
+          </button>
           <div className={styles.sync}>
             <span>{loading ? 'Syncing HubSpot...' : `Last synced from HubSpot · ${meta.lastSynced}`}</span>
             <i className={`${styles.dot} ${loading ? styles.dotPulse : ''}`} />
@@ -317,18 +392,16 @@ export default function Dashboard() {
             </select>
           </div>
           <div className={styles.mobileMenuRow}>
-            <button
-              className={`${styles.lockBtn} ${adminUnlocked ? styles.unlocked : ''}`}
-              onClick={() => { adminUnlocked ? setAdminUnlocked(false) : setShowPinModal(true); setMobileMenuOpen(false) }}
-            >
-              {adminUnlocked ? '🔓 Admin' : '🔒 Admin'}
-            </button>
-            {adminUnlocked && (
-              <button className={styles.lockBtn} style={{ background: 'rgba(190,218,129,0.15)', borderColor: 'rgba(190,218,129,0.5)', color: '#BEDA81' }}
+            {isAdmin && (
+              <button className={styles.editBtn}
                 onClick={() => { openTargetModal(); setMobileMenuOpen(false) }}>
                 Edit targets
               </button>
             )}
+            <button className={styles.signOutBtn}
+              onClick={() => { handleSignOut(); setMobileMenuOpen(false) }}>
+              Sign out
+            </button>
           </div>
         </div>
       )}
@@ -624,78 +697,122 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* TARGET EDIT MODAL */}
-      {showTargetModal && (
-        <div className={styles.overlay} onClick={() => setShowTargetModal(false)}>
-          <div className={styles.modal} style={{ width: '480px' }} onClick={e => e.stopPropagation()}>
-            <h2>Edit Targets · {month}</h2>
-            <p className={styles.modalSub}>Set monthly targets for Ed and Mark. Team total is calculated automatically.</p>
+      {/* EDIT MONTHLY TARGETS PANEL */}
+      {showTargetModal && isAdmin && (
+        <div className={styles.overlay} onClick={closeTargetModal}>
+          <div
+            className={styles.editPanel}
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="editPanelTitle"
+            onKeyDown={onPanelKeyDown}
+            onClick={e => e.stopPropagation()}
+          >
+            <h2 id="editPanelTitle" className={styles.editPanelTitle}>Edit monthly targets</h2>
+            <p className={styles.editPanelSub}>
+              Set the sales budget and KPI targets for {monthLabel}. Team totals update automatically.
+            </p>
 
-            <div style={{ marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid var(--line)' }}>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--ink)', marginBottom: '10px' }}>Sales Budget (Full Team)</div>
-              <div className={styles.irow}>
-                <label>Monthly Budget ($)</label>
-                <input type="number" value={editSalesBudget}
-                  onChange={e => setEditSalesBudget(parseInt(e.target.value) || 0)} />
+            {/* Sales budget */}
+            <div className={styles.editPanelSection}>
+              <div className={styles.editEyebrow}>Sales budget</div>
+              <div className={styles.editField}>
+                <label htmlFor="f-salesBudget">Monthly sales budget</label>
+                <input
+                  id="f-salesBudget"
+                  ref={firstFieldRef}
+                  type="number"
+                  min="0"
+                  step="1000"
+                  className={styles.editInput}
+                  value={editSalesBudget}
+                  aria-invalid={!!fieldErrors.salesBudget}
+                  aria-describedby={fieldErrors.salesBudget ? 'e-salesBudget' : undefined}
+                  onChange={e => setEditSalesBudget(parseField(e.target.value))}
+                />
+                <span className={styles.editHelper}>{fmtDollars(editSalesBudget)}</span>
+                {fieldErrors.salesBudget && (
+                  <span id="e-salesBudget" className={styles.editError}>Enter a number of 0 or more</span>
+                )}
               </div>
             </div>
 
+            {/* Per-rep KPIs */}
             {['Ed', 'Mark'].map(r => (
-              <div key={r} style={{ marginBottom: '20px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--ink)', marginBottom: '10px', paddingBottom: '6px', borderBottom: '1px solid var(--line)' }}>{r} Beatson</div>
-                <div className={styles.irow}>
-                  <label>Connected Calls</label>
-                  <input type="number" value={editTargets[r].calls}
-                    onChange={e => setEditTargets(prev => ({ ...prev, [r]: { ...prev[r], calls: parseInt(e.target.value) || 0 } }))} />
+              <div key={r} className={styles.editPanelSection}>
+                <div className={styles.editEyebrow}>{r} Beatson</div>
+
+                <div className={styles.editField}>
+                  <label htmlFor={`f-${r}-calls`}>Connected calls</label>
+                  <input
+                    id={`f-${r}-calls`}
+                    type="number" min="0" step="1"
+                    className={styles.editInput}
+                    value={editTargets[r].calls}
+                    aria-invalid={!!fieldErrors[`${r}.calls`]}
+                    aria-describedby={fieldErrors[`${r}.calls`] ? `e-${r}-calls` : undefined}
+                    onChange={e => setEditTargets(prev => ({ ...prev, [r]: { ...prev[r], calls: parseField(e.target.value) } }))}
+                  />
+                  {fieldErrors[`${r}.calls`] && (
+                    <span id={`e-${r}-calls`} className={styles.editError}>Enter a number of 0 or more</span>
+                  )}
                 </div>
-                <div className={styles.irow}>
-                  <label>Face to Face Visits</label>
-                  <input type="number" value={editTargets[r].visits}
-                    onChange={e => setEditTargets(prev => ({ ...prev, [r]: { ...prev[r], visits: parseInt(e.target.value) || 0 } }))} />
+
+                <div className={styles.editField}>
+                  <label htmlFor={`f-${r}-visits`}>Face to face visits</label>
+                  <input
+                    id={`f-${r}-visits`}
+                    type="number" min="0" step="1"
+                    className={styles.editInput}
+                    value={editTargets[r].visits}
+                    aria-invalid={!!fieldErrors[`${r}.visits`]}
+                    aria-describedby={fieldErrors[`${r}.visits`] ? `e-${r}-visits` : undefined}
+                    onChange={e => setEditTargets(prev => ({ ...prev, [r]: { ...prev[r], visits: parseField(e.target.value) } }))}
+                  />
+                  {fieldErrors[`${r}.visits`] && (
+                    <span id={`e-${r}-visits`} className={styles.editError}>Enter a number of 0 or more</span>
+                  )}
                 </div>
-                <div className={styles.irow}>
-                  <label>Pipeline Value ($)</label>
-                  <input type="number" value={editTargets[r].pipeline}
-                    onChange={e => setEditTargets(prev => ({ ...prev, [r]: { ...prev[r], pipeline: parseInt(e.target.value) || 0 } }))} />
+
+                <div className={styles.editField}>
+                  <label htmlFor={`f-${r}-pipeline`}>Pipeline value</label>
+                  <input
+                    id={`f-${r}-pipeline`}
+                    type="number" min="0" step="1000"
+                    className={styles.editInput}
+                    value={editTargets[r].pipeline}
+                    aria-invalid={!!fieldErrors[`${r}.pipeline`]}
+                    aria-describedby={fieldErrors[`${r}.pipeline`] ? `e-${r}-pipeline` : undefined}
+                    onChange={e => setEditTargets(prev => ({ ...prev, [r]: { ...prev[r], pipeline: parseField(e.target.value) } }))}
+                  />
+                  <span className={styles.editHelper}>{fmtDollars(editTargets[r].pipeline)}</span>
+                  {fieldErrors[`${r}.pipeline`] && (
+                    <span id={`e-${r}-pipeline`} className={styles.editError}>Enter a number of 0 or more</span>
+                  )}
                 </div>
               </div>
             ))}
 
-            <div style={{ background: 'rgba(64,81,79,0.05)', borderRadius: '8px', padding: '12px', fontSize: '12px', color: 'var(--muted)' }}>
-              <strong style={{ color: 'var(--ink)' }}>Team totals (auto-calculated):</strong><br />
-              Calls: {editTargets.Ed.calls + editTargets.Mark.calls} · Visits: {editTargets.Ed.visits + editTargets.Mark.visits} · Pipeline: {fmt(editTargets.Ed.pipeline + editTargets.Mark.pipeline)}
+            {/* Team total */}
+            <div className={styles.editTotal}>
+              Team total: calls {teamCalls}, visits {teamVisits}, pipeline {fmtDollars(teamPipeline)}
             </div>
 
-            {targetMsg && <div style={{ marginTop: '10px', fontSize: '12px', color: targetMsg.includes('success') ? 'var(--good)' : 'var(--bad)' }}>{targetMsg}</div>}
+            {targetMsg && (
+              <div
+                className={targetMsgType === 'success' ? styles.editSuccess : styles.editErrorMsg}
+                role={targetMsgType === 'success' ? 'status' : 'alert'}
+              >
+                {targetMsg}
+              </div>
+            )}
 
-            <div className={styles.modalActions}>
-              <button className={styles.btnCancel} onClick={() => setShowTargetModal(false)}>Cancel</button>
+            <div className={styles.editActions}>
+              <button className={styles.btnCancel} onClick={closeTargetModal}>Cancel</button>
               <button className={styles.btnSave} onClick={saveTargets} disabled={targetSaving}>
                 {targetSaving ? 'Saving...' : 'Save targets'}
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* PIN MODAL */}
-      {showPinModal && (
-        <div className={styles.overlay} onClick={() => setShowPinModal(false)}>
-          <div className={styles.modal} style={{ width: '300px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-            <h2>Admin access</h2>
-            <p className={styles.modalSub}>Enter your 4-digit PIN</p>
-            <div className={styles.pinRow}>
-              {[0, 1, 2, 3].map(i => (
-                <input key={i} ref={pinRefs[i]} type="password" maxLength={1} value={pin[i]}
-                  className={styles.pinDigit}
-                  onChange={e => handlePinInput(i, e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && checkPin()} />
-              ))}
-            </div>
-            {pinError && <div className={styles.pinError}>{pinError}</div>}
-            <div className={styles.modalActions} style={{ justifyContent: 'center' }}>
-              <button className={styles.btnCancel} onClick={() => setShowPinModal(false)}>Cancel</button>
-              <button className={styles.btnSave} onClick={checkPin}>Unlock</button>
             </div>
           </div>
         </div>

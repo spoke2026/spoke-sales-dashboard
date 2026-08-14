@@ -72,25 +72,38 @@
 
 .controls select option { color: #40514F; }
 
-.lockBtn {
+/* Header controls — deliberately ~30px to match the dark control bar's selectors.
+   Full 40px standard applies to the edit panel and login surfaces. */
+.editBtn,
+.signOutBtn {
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  font-weight: 500;
   height: 30px;
-  padding: 0 10px;
+  padding: 0 12px;
   border-radius: 6px;
   cursor: pointer;
   font-family: var(--font-sans);
   display: flex;
   align-items: center;
-  gap: 5px;
-  transition: all 0.15s;
   white-space: nowrap;
+  outline: none;
+  transition: background 0.15s, box-shadow 0.12s;
 }
 
-.lockBtn:hover { background: rgba(255, 255, 255, 0.12); }
-.lockBtn.unlocked { background: rgba(190, 218, 129, 0.2); border-color: #BEDA81; }
+.editBtn {
+  background: rgba(190, 218, 129, 0.16);
+  border-color: rgba(190, 218, 129, 0.5);
+  color: #DCEAB8;
+}
+
+.editBtn:hover { background: rgba(190, 218, 129, 0.26); }
+.signOutBtn:hover { background: rgba(255, 255, 255, 0.13); }
+
+.editBtn:focus-visible,
+.signOutBtn:focus-visible { box-shadow: 0 0 0 3px #BEDA81; }
 
 .sync {
   display: flex;
@@ -454,7 +467,9 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(26, 20, 24, 0.6);
+  background: rgba(36, 55, 53, 0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -515,16 +530,23 @@
 }
 
 .btnSave {
-  background: #BEDA81;
-  color: #2e3c3a;
+  height: 40px;
+  background: var(--mineral);
+  color: var(--stone);
   border: none;
   border-radius: 8px;
-  padding: 9px 20px;
-  font-size: 13px;
+  padding: 0 20px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   font-family: var(--font-sans);
+  outline: none;
+  transition: background 0.12s, box-shadow 0.12s;
 }
+
+.btnSave:hover:not(:disabled) { background: #354644; }
+.btnSave:focus-visible { box-shadow: 0 0 0 3px var(--zest); }
+.btnSave:disabled { opacity: 0.7; cursor: default; }
 
 .btnCancel {
   background: transparent;
@@ -537,53 +559,129 @@
   font-family: var(--font-sans);
 }
 
-/* PIN */
-.pinRow { display: flex; gap: 10px; justify-content: center; margin: 18px 0; }
-
-.pinDigit {
-  width: 52px;
-  height: 58px;
-  background: #F8F8F1;
-  border: 1px solid rgba(64, 81, 79, 0.2);
-  border-radius: 10px;
-  color: var(--ink);
-  font-size: 24px;
-  text-align: center;
-  font-family: var(--font-sans);
-  outline: none;
+/* ── EDIT MONTHLY TARGETS PANEL ──────────────────────────────────────────────
+   Dedicated classes so the shared drill-down modal classes (.modal, .modalSub,
+   .modalActions, .btnCancel, .dealList, .dealBadge, .badgeOk, .badgeWarn) are
+   left untouched. */
+.editPanel {
+  background: white;
+  border: 1px solid rgba(64, 81, 79, 0.14);
+  border-radius: 18px;
+  padding: 48px;
+  width: 500px;
+  max-width: 95vw;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 28px 70px rgba(36, 55, 53, 0.28);
 }
 
-.pinDigit:focus { border-color: #40514F; }
-.pinError { text-align: center; font-size: 12px; color: #C65C2E; margin-bottom: 4px; }
-
-/* INPUT ROWS */
-.irow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 12px;
+.editPanelTitle {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.1;
+  color: var(--mineral);
+  margin: 0 0 8px;
 }
 
-.irow label {
-  font-size: 12px;
-  color: var(--muted);
-  font-weight: 500;
-}
-
-.irow input {
-  height: 36px;
-  border: 1px solid rgba(64, 81, 79, 0.2);
-  border-radius: 8px;
-  padding: 0 12px;
+.editPanelSub {
   font-size: 13px;
-  font-family: var(--font-sans);
-  outline: none;
+  color: var(--muted);
+  margin: 0 0 24px;
+  line-height: 1.5;
 }
 
-.irow input:focus {
-  border-color: #40514F;
-  background: rgba(190, 218, 129, 0.06);
+.editPanelSection {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.editEyebrow {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+
+.editField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.editField:last-child { margin-bottom: 0; }
+
+.editField label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.editInput {
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 0 12px;
+  font-size: 14px;
+  font-family: var(--font-mono);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.editInput:focus {
+  border-color: var(--mineral);
+  box-shadow: 0 0 0 3px var(--zest);
+}
+
+.editInput[aria-invalid="true"] { border-color: var(--bad); }
+
+.editHelper {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--muted);
+}
+
+.editError {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bad);
+}
+
+.editTotal {
+  background: rgba(64, 81, 79, 0.05);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+  color: var(--ink);
+}
+
+.editSuccess {
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--good);
+}
+
+.editErrorMsg {
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bad);
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+  justify-content: flex-end;
 }
 
 /* RESPONSIVE */
@@ -655,7 +753,8 @@
   
   .hamburger { display: flex; }
   .controls select,
-  .controls .lockBtn,
+  .controls .editBtn,
+  .controls .signOutBtn,
   .sync { display: none; }
   .mobileMenu { display: flex; }
   .header { padding: 0 16px; height: 52px; }
@@ -711,4 +810,10 @@
     padding: 8px 0 16px;
   }
   .footer span::after { display: none !important; }
+
+  /* Edit panel: tighter padding, full-width stacked actions. */
+  .editPanel { padding: 24px; }
+  .editActions { flex-direction: column-reverse; }
+  .editActions button { width: 100%; }
+  .btnSave, .editActions .btnCancel { width: 100%; }
 }
