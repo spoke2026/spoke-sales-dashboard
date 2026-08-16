@@ -1,125 +1,189 @@
-/* Login page owns its own scroll context: globals.css sets body overflow:hidden,
-   so this page re-establishes a scrollable, centred layout. */
-.page {
+/*
+ * Sales dashboard login — Spoke digital brand standard v1.0 (canonical login).
+ * Full-screen Mineral, no card, white logo, Zest eyebrow, square geometry,
+ * DM Sans only (no serif). globals.css sets body overflow:hidden, so .shell is
+ * fixed + owns its own scroll context.
+ */
+
+.shell {
   position: fixed;
   inset: 0;
   overflow-y: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.7), transparent 40%), var(--stone);
+  display: grid;
+  place-items: center;
+  padding: clamp(1.25rem, 4vw, 3rem);
+  background: #40514f;
+  color: #ffffff;
+  font-family: "DM Sans", system-ui, -apple-system, sans-serif;
 }
 
-.card {
-  width: 100%;
-  max-width: 400px;
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  box-shadow: 0 24px 60px rgba(30, 42, 40, 0.12);
-  padding: 40px;
+.shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.025), transparent 45%),
+    radial-gradient(circle at 88% 12%, rgba(190, 218, 129, 0.13), transparent 34%);
+  pointer-events: none;
 }
 
-.logoLockup {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #243735, var(--mineral));
-  border-radius: 12px;
-  padding: 14px 18px;
-  margin-bottom: 24px;
+.panel {
+  width: min(100%, 29rem);
+  position: relative;
+  z-index: 1;
 }
 
 .logo {
-  height: 24px;
-  width: auto;
+  width: 10rem;
+  height: auto;
   display: block;
+  margin-bottom: clamp(3rem, 9vh, 5.5rem);
+}
+
+.intro {
+  margin-bottom: 2rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.8rem;
+  color: #beda81;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .title {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
-  font-size: 30px;
-  line-height: 1.1;
-  color: var(--mineral);
-  margin: 0 0 8px;
+  margin: 0;
+  font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+  font-style: normal;
+  font-size: clamp(2.5rem, 9vw, 4.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  font-weight: 650;
+  color: #ffffff;
 }
 
-.sub {
-  font-size: 14px;
-  color: var(--muted);
-  margin: 0 0 28px;
-  line-height: 1.5;
+.lede {
+  margin: 1rem 0 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 1rem;
+  line-height: 1.55;
 }
 
 .form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.alert {
-  margin: 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: rgba(198, 92, 46, 0.1);
-  color: var(--bad);
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  gap: 0.65rem;
 }
 
 .label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ink);
+  margin-top: 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .input {
-  height: 40px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface);
-  padding: 0 12px;
-  font-size: 14px;
-  font-family: var(--font-sans);
-  color: var(--ink);
+  width: 100%;
+  min-height: 3.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  padding: 0.85rem 1rem;
+  font: inherit;
   outline: none;
-  transition: border-color 0.12s, box-shadow 0.12s;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.input:hover {
+  border-color: rgba(255, 255, 255, 0.42);
 }
 
 .input:focus {
-  border-color: var(--mineral);
-  box-shadow: 0 0 0 3px var(--zest);
+  border-color: #beda81;
+  background: rgba(255, 255, 255, 0.085);
+  box-shadow: 0 0 0 3px rgba(190, 218, 129, 0.16);
 }
 
 .button {
-  height: 40px;
-  margin-top: 4px;
-  background: var(--mineral);
-  color: var(--stone);
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: var(--font-sans);
+  width: 100%;
+  min-height: 3.35rem;
+  margin-top: 0.9rem;
+  border: 0;
+  border-radius: 0;
+  background: #beda81;
+  color: #28332f;
+  font: inherit;
+  font-weight: 700;
   cursor: pointer;
-  outline: none;
-  transition: background 0.12s, box-shadow 0.12s;
+  transition: transform 150ms ease, background 150ms ease;
 }
 
-.button:hover:not(:disabled) { background: #354644; }
-.button:focus-visible { box-shadow: 0 0 0 3px var(--zest); }
-.button:disabled { opacity: 0.7; cursor: default; }
+.button:hover:not(:disabled) {
+  background: #cbe39a;
+}
 
-@media (max-width: 600px) {
-  .card { padding: 28px 24px; }
-  .title { font-size: 26px; }
+.button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.button:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.alert {
+  margin: 0.65rem 0 0;
+  padding: 0.8rem 0;
+  color: #f5d8d2;
+  font-size: 0.86rem;
+  border-top: 1px solid rgba(245, 216, 210, 0.24);
+  border-bottom: 1px solid rgba(245, 216, 210, 0.24);
+}
+
+.footnote {
+  margin: 1.4rem 0 0;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+@media (max-width: 520px) {
+  .shell {
+    place-items: start stretch;
+    padding-top: max(2rem, env(safe-area-inset-top));
+  }
+
+  .panel {
+    width: 100%;
+    min-height: calc(100svh - 4rem);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .logo {
+    margin-bottom: auto;
+    padding-top: 0.5rem;
+  }
+
+  .intro {
+    margin-top: 4rem;
+  }
+
+  .footnote {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell *,
+  .shell *::before,
+  .shell *::after {
+    transition-duration: 0.01ms !important;
+  }
 }
