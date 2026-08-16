@@ -81,6 +81,7 @@ export async function GET(request) {
         target:       repTargets.visits,
         dailyActuals: visits.dailyActuals,
         byOwner:      visits.byOwner,
+        details:      visits.details || [],
         lastMonth:    0,
       },
       pipeline: {

@@ -131,7 +131,7 @@ const OWNERS = {
 const MOCK = {
   sales:    { actual: 0, budget: 150000, dailyActuals: [], lastMonthActual: 0 },
   calls:    { actual: 0, target: 0, details: [], dailyActuals: [], lastMonth: 0 },
-  visits:   { actual: 0, target: 0, dailyActuals: [], lastMonth: 0 },
+  visits:   { actual: 0, target: 0, details: [], dailyActuals: [], lastMonth: 0 },
   pipeline: { actual: 0, target: 0, details: [], dailyActuals: [], lastMonth: 0 },
   dealAge:  { avgDays: 0, lastMonthAvg: 0, total: 0, bands: [
     { label: '1–5 days',   min:1,  max:5,    count:0, deals:[] },
@@ -151,6 +151,7 @@ export default function Dashboard() {
   const [rep, setRep]                               = useState('full-team')
   const [drillBand, setDrillBand]                   = useState(null)
   const [drillCalls, setDrillCalls]                 = useState(null)
+  const [drillVisits, setDrillVisits]               = useState(null)
   const [drillPipeline, setDrillPipeline]           = useState(null)
   const [drillPipelineTotal, setDrillPipelineTotal] = useState(0)
   const [isAdmin, setIsAdmin]                       = useState(false)
@@ -534,6 +535,7 @@ export default function Dashboard() {
             daysGone={daysGone}
             daysInMonth={daysInMonth}
             todayPct={todayPct}
+            onDrill={() => setDrillVisits(visits.details || [])}
           >
             <div className={styles.smallChartWrap}>
               <Line
@@ -676,6 +678,37 @@ export default function Dashboard() {
             </div>
             <div className={styles.modalActions}>
               <button className={styles.btnCancel} onClick={() => setDrillCalls(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VISITS DRILL */}
+      {drillVisits && (
+        <div className={styles.overlay} onClick={() => setDrillVisits(null)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <h2>Face to Face Visits · {drillVisits.length} this month</h2>
+            <p className={styles.modalSub}>Face to face visits · most recent first</p>
+            <div className={styles.dealList}>
+              {drillVisits.length === 0
+                ? <div className={styles.dealEmpty}>No visits found</div>
+                : drillVisits.map((visit, i) => {
+                  const nzt = new Date(visit.date)
+                  return (
+                    <div key={i} className={styles.dealRow}>
+                      <div>
+                        <div className={styles.dealName}>{visit.title}</div>
+                        <div className={styles.dealMeta}>
+                          {nzt.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', timeZone: 'Pacific/Auckland' })} · {nzt.toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit', timeZone: 'Pacific/Auckland' })} · {OWNERS[visit.owner] || 'Unknown'}
+                        </div>
+                      </div>
+                      <div className={`${styles.dealBadge} ${styles.badgeOk}`}>{visit.outcome}</div>
+                    </div>
+                  )
+                })}
+            </div>
+            <div className={styles.modalActions}>
+              <button className={styles.btnCancel} onClick={() => setDrillVisits(null)}>Close</button>
             </div>
           </div>
         </div>
@@ -857,7 +890,13 @@ function MetricCard({ icon, title, actual, target, isMoney, daysGone, daysInMont
       <div className={styles.metricMain}>
         <div>
           <div className={`${styles.metricNumber} ${isMoney ? styles.money : ''} ${onDrill ? styles.metricNumberDrill : ''}`}
-            onClick={onDrill}>{displayActual}</div>
+            onClick={onDrill}
+            role={onDrill ? 'button' : undefined}
+            tabIndex={onDrill ? 0 : undefined}
+            aria-label={onDrill ? `${title}: ${displayActual}. Show the full list` : undefined}
+            onKeyDown={onDrill ? e => {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onDrill() }
+            } : undefined}>{displayActual}</div>
           <div className={styles.targetLine}>of <em>{displayTarget}</em> target</div>
         </div>
         <div className={styles.miniPct}><strong>{p}%</strong>of target</div>
