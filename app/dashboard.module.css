@@ -1,116 +1,127 @@
+/*
+ * Sales dashboard — Spoke digital brand standard v1.1.
+ * Mineral header (level 2) → Stone workspace (level 0) → White cards (level 1)
+ * → Stone wells inside cards. Square geometry, DM Sans only, Zest reserved for
+ * primary action and forward movement.
+ */
+
 .dashboard {
   width: 100vw;
   height: 100vh;
-  padding: 26px;
+  padding: 24px;
   display: grid;
   grid-template-rows: 76px 1fr 24px;
-  gap: 18px;
+  gap: 16px;
 }
 
-/* HEADER */
+/* ── HEADER ─────────────────────────────────────────────────────────────────
+   Level 2. Flat Mineral, no gradient, no shadow. Ranking, strongest to
+   quietest: brand → tool name → month/view controls → edit → sign out. */
 .header {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 20px;
-  background: linear-gradient(135deg, #243735, #40514F);
-  margin: -26px -26px 0;
-  padding: 0 32px;
-  height: 58px;
-  color: white;
-  box-shadow: 0 8px 24px rgba(64, 81, 79, 0.18);
+  gap: 24px;
+  background: var(--mineral);
+  margin: -24px -24px 0;
+  padding: 0 24px;
+  height: 68px;
+  color: var(--white);
 }
 
 .brandRow {
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 20px;
 }
 
 .logoImg {
-  height: 22px;
-  width: auto;
+  width: 104px;
+  height: auto;
   display: block;
 }
 
 .divider {
   width: 1px;
-  height: 22px;
-  background: rgba(255, 255, 255, 0.25);
+  height: 24px;
+  background: var(--white-25);
 }
 
 .header h1 {
   margin: 0;
-  color: white;
+  color: var(--white-90);
   font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  opacity: 0.85;
+  font-weight: 650;
+  letter-spacing: -0.01em;
 }
 
 .controls {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   font-size: 14px;
 }
 
 .controls select {
-  height: 30px;
-  min-width: 140px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.07);
-  color: white;
-  padding: 0 10px;
+  height: 40px;
+  min-width: 150px;
+  border: 1px solid var(--white-25);
+  border-radius: var(--radius);
+  background: var(--white-09);
+  color: var(--white);
+  padding: 0 12px;
   font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 400;
+  font-size: 13px;
+  font-weight: 500;
   outline: none;
   cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
-.controls select option { color: #40514F; }
+.controls select:hover { background: var(--white-16); }
+.controls select:focus-visible { outline: 3px solid var(--zest); outline-offset: 2px; }
+.controls select option { color: var(--mineral); background: var(--white); }
 
-/* Header controls — deliberately ~30px to match the dark control bar's selectors.
-   Full 40px standard applies to the edit panel and login surfaces. */
 .editBtn,
 .signOutBtn {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 12px;
-  font-weight: 500;
-  height: 30px;
-  padding: 0 12px;
-  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--white-25);
+  color: var(--white-90);
+  font-size: 13px;
+  font-weight: 650;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius);
   cursor: pointer;
   font-family: var(--font-sans);
   display: flex;
   align-items: center;
   white-space: nowrap;
   outline: none;
-  transition: background 0.15s, box-shadow 0.12s;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
-.editBtn {
-  background: rgba(190, 218, 129, 0.16);
-  border-color: rgba(190, 218, 129, 0.5);
-  color: #DCEAB8;
+.editBtn:hover { background: var(--white-16); border-color: var(--white-42); }
+
+/* Sign out stays quiet — never Zest, never a peer of the workflow controls. */
+.signOutBtn {
+  border-color: transparent;
+  color: var(--white-68);
+  font-weight: 500;
+  padding: 0 10px;
 }
 
-.editBtn:hover { background: rgba(190, 218, 129, 0.26); }
-.signOutBtn:hover { background: rgba(255, 255, 255, 0.13); }
+.signOutBtn:hover { color: var(--white-90); background: var(--white-09); }
 
 .editBtn:focus-visible,
-.signOutBtn:focus-visible { box-shadow: 0 0 0 3px #BEDA81; }
+.signOutBtn:focus-visible { outline: 3px solid var(--zest); outline-offset: 2px; }
 
 .sync {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  color: var(--white-68);
   line-height: 1.4;
   white-space: nowrap;
 }
@@ -118,21 +129,18 @@
 .dot {
   width: 7px;
   height: 7px;
-  background: #BEDA81;
-  border-radius: 50%;
+  background: var(--zest);
   flex-shrink: 0;
 }
 
-.dotPulse {
-  animation: pulse 1.2s ease-in-out infinite;
-}
+.dotPulse { animation: pulse 1.2s ease-in-out infinite; }
 
 @keyframes pulse {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
 }
 
-/* MAIN GRID */
+/* ── MAIN GRID ─────────────────────────────────────────────────────────────── */
 .main {
   min-height: 0;
   display: grid;
@@ -140,33 +148,40 @@
   gap: 16px;
 }
 
-/* CARDS */
+/* ── CARDS ─────────────────────────────────────────────────────────────────
+   Level 1. White on the Stone workspace does the hierarchy work; the border
+   is a quiet structural cue after it, not instead of it. No shadow. */
 .card {
   min-height: 0;
-  background: white;
-  border: 1px solid rgba(64, 81, 79, 0.14);
-  border-radius: 22px;
-  box-shadow: 0 18px 44px rgba(30, 42, 40, 0.10);
+  background: var(--surface-1);
+  border: 1px solid var(--mineral-18);
+  border-radius: var(--radius);
   overflow: hidden;
 }
 
-/* TOP CARD */
+/* ── TOP CARD ─────────────────────────────────────────────────────────────── */
 .topCard {
   display: grid;
-  grid-template-columns: 360px 1fr 168px;
-  gap: 22px;
+  grid-template-columns: 360px 1fr 176px;
+  gap: 24px;
   align-items: stretch;
-  padding: 24px 26px 20px;
+  padding: 24px;
 }
 
 .sectionLabel {
   margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--mineral-deep);
+  font-weight: 650;
+}
+
+.sectionLabelNote {
   font-size: 13px;
-  line-height: 1;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink);
-  font-weight: 700;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--mineral-80);
 }
 
 .salesLeft {
@@ -177,74 +192,77 @@
 }
 
 .bigNumber {
-  font-family: var(--font-serif);
-  font-size: clamp(64px, 6vw, 96px);
-  line-height: 0.88;
-  letter-spacing: -0.045em;
-  color: #40514F;
-  font-weight: 400;
+  font-family: var(--font-sans);
+  font-size: clamp(56px, 5vw, 80px);
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+  color: var(--mineral);
+  font-weight: 650;
   margin: 20px 0 8px;
   white-space: nowrap;
 }
 
 .budgetLine {
-  font-size: 18px;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  margin: 0 0 14px;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--mineral-80);
+  margin: 0 0 16px;
 }
 
 .budgetPill {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
-  margin: 0 0 18px;
+  gap: 12px;
+  margin: 0 0 16px;
 }
 
 .budgetPill strong {
-  background: linear-gradient(180deg, rgba(190, 218, 129, 0.7), rgba(190, 218, 129, 0.44));
-  border-radius: 7px;
-  padding: 9px 15px;
+  background: var(--zest);
+  border-radius: var(--radius);
+  padding: 8px 14px;
   font-size: 22px;
-  color: #40514F;
-  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #28332F;
+  font-weight: 700;
 }
 
-.budgetPill span { font-size: 15px; color: var(--ink); }
+.budgetPill span { font-size: 14px; color: var(--mineral-80); }
 
-.rule { height: 1px; background: rgba(64, 81, 79, 0.14); margin: 0 0 16px; }
+.rule { height: 1px; background: var(--mineral-18); margin: 0 0 16px; }
 
 .paceCopy {
   display: grid;
   grid-template-columns: 28px 1fr;
-  gap: 10px;
+  gap: 12px;
   align-items: start;
-  color: var(--ink);
+  color: var(--mineral-deep);
 }
 
 .paceIcon {
   width: 28px;
   height: 28px;
-  border-radius: 999px;
-  background: #BEDA81;
+  border-radius: var(--radius);
+  background: var(--mineral);
   display: grid;
   place-items: center;
-  color: #40514F;
+  color: var(--white);
   font-weight: 700;
   font-size: 15px;
 }
 
-.paceCopy strong { display: block; font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-.paceCopy span { color: var(--muted); font-size: 13px; }
+.paceCopy strong { display: block; font-size: 15px; font-weight: 650; margin-bottom: 4px; }
+.paceCopy span { color: var(--mineral-80); font-size: 13px; }
 
+/* Chart well — Stone inside the White card, so it recesses by surface. */
 .chartArea {
   min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: #F8F8F1;
-  border-radius: 12px;
-  padding: 16px 18px 12px;
+  background: var(--stone);
+  border-radius: var(--radius);
+  padding: 16px 16px 12px;
 }
 
 .legend {
@@ -253,24 +271,24 @@
   align-items: center;
   gap: 24px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--mineral-80);
   flex-shrink: 0;
 }
 
-.legend span { display: flex; align-items: center; gap: 6px; }
+.legend span { display: flex; align-items: center; gap: 8px; }
 
 .legLine {
   display: inline-block;
   width: 18px;
   height: 2px;
-  background: #40514F;
+  background: var(--mineral);
 }
 
 .legDash {
   display: inline-block;
   width: 18px;
   height: 2px;
-  background: repeating-linear-gradient(90deg, #BEDA81 0 5px, transparent 5px 9px);
+  background: repeating-linear-gradient(90deg, var(--zest) 0 5px, transparent 5px 9px);
 }
 
 .mainChartWrap {
@@ -281,8 +299,8 @@
 
 .sideSummary {
   align-self: center;
-  background: #F8F8F1;
-  border-radius: 14px;
+  background: var(--stone);
+  border-radius: var(--radius);
   padding: 20px 16px;
   display: grid;
   gap: 16px;
@@ -292,24 +310,26 @@
   display: block;
   text-transform: uppercase;
   font-size: 11px;
-  color: var(--muted);
-  margin-bottom: 6px;
-  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--mineral-80);
+  margin-bottom: 8px;
+  font-weight: 700;
 }
 
 .sideSummary strong {
-  font-family: var(--font-serif);
-  font-size: 34px;
+  font-family: var(--font-sans);
+  font-size: 32px;
   line-height: 1;
-  font-weight: 400;
-  color: #40514F;
+  letter-spacing: -0.04em;
+  font-weight: 650;
+  color: var(--mineral);
   display: block;
 }
 
-.sideSummary span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
-.sideRule { height: 1px; background: rgba(64, 81, 79, 0.14); }
+.sideSummary span { display: block; margin-top: 6px; color: var(--mineral-80); font-size: 12px; }
+.sideRule { height: 1px; background: var(--mineral-18); }
 
-/* BOTTOM GRID */
+/* ── BOTTOM GRID ───────────────────────────────────────────────────────────── */
 .bottomGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -321,7 +341,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 18px 20px 14px;
+  padding: 16px;
   overflow-y: auto;
 }
 
@@ -329,28 +349,29 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   flex-shrink: 0;
 }
 
+/* Icon holder: Mineral, square, quiet. Zest is not a decoration colour. */
 .icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(190, 218, 129, 0.52);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: var(--mineral-10);
   display: grid;
   place-items: center;
-  color: #40514F;
+  color: var(--mineral);
   flex-shrink: 0;
 }
 
 .metricTitle {
   margin: 0;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.035em;
-  color: var(--ink);
-  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: var(--mineral-deep);
+  font-weight: 650;
 }
 
 .metricMain {
@@ -363,55 +384,69 @@
 }
 
 .metricNumber {
-  font-family: var(--font-serif);
-  font-size: 52px;
-  line-height: 0.86;
+  font-family: var(--font-sans);
+  font-size: 42px;
+  line-height: 0.94;
   letter-spacing: -0.045em;
-  color: #40514F;
+  font-weight: 650;
+  color: var(--mineral);
   white-space: nowrap;
 }
 
-.metricNumber.money { font-size: 40px; }
+.metricNumber.money { font-size: 34px; }
 
-.targetLine { font-size: 14px; color: var(--ink); margin-top: 4px; }
-.targetLine em { color: #5D873E; font-style: normal; }
-
-.miniPct {
-  background: rgba(190, 218, 129, 0.34);
-  border-radius: 9px;
-  padding: 8px 10px;
-  text-align: center;
-  min-width: 56px;
-  font-size: 11px;
-  color: var(--ink);
+.metricNumberDrill {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
 }
 
-.miniPct strong { display: block; font-size: 15px; font-weight: 700; }
+.targetLine { font-size: 13px; color: var(--mineral-80); margin-top: 6px; }
+.targetLine em { color: var(--mineral-deep); font-style: normal; font-weight: 650; }
+
+.miniPct {
+  background: var(--mineral-10);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  text-align: center;
+  min-width: 58px;
+  font-size: 11px;
+  color: var(--mineral-80);
+  line-height: 1.3;
+}
+
+.miniPct strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--mineral);
+}
 
 .progress {
-  height: 7px;
-  background: rgba(64, 81, 79, 0.13);
-  border-radius: 999px;
+  height: 8px;
+  background: var(--mineral-10);
+  border-radius: var(--radius);
   position: relative;
   overflow: visible;
-  margin: 2px 0 6px;
+  margin: 2px 0 8px;
   flex-shrink: 0;
 }
 
 .progressFill {
   display: block;
   height: 100%;
-  border-radius: inherit;
-  background: #BEDA81;
+  background: var(--zest);
 }
 
 .progressMarker {
   position: absolute;
-  top: -5px;
+  top: -4px;
   width: 3px;
-  height: 17px;
-  background: #40514F;
-  border-radius: 999px;
+  height: 16px;
+  background: var(--mineral);
   transform: translateX(-50%);
 }
 
@@ -420,35 +455,96 @@
   justify-content: space-between;
   gap: 10px;
   font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 8px;
+  color: var(--mineral-80);
+  margin-bottom: 10px;
   flex-shrink: 0;
 }
 
-.good { color: #5D873E; }
-.bad { color: #C65C2E; }
+.good { color: var(--good); font-weight: 650; }
+.bad { color: var(--bad); font-weight: 650; }
 
 .smallChartWrap {
   flex: 1;
   min-height: 0;
-  background: #F8F8F1;
-  border-radius: 10px;
+  background: var(--stone);
+  border-radius: var(--radius);
   padding: 8px;
   position: relative;
 }
 
-.daysText { font-size: 15px; margin-top: 4px; }
+.daysText { font-size: 13px; color: var(--mineral-80); margin-top: 4px; }
 
-.ageChartWrap {
-  display: none;
+/* ── DEAL AGE BANDS ────────────────────────────────────────────────────────── */
+.bandEyebrow {
+  font-size: 10px;
+  color: var(--mineral-80);
+  margin: 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
-/* FOOTER */
+/* Rows take their content height and share any space left over. Do not add
+   min-height: 0 — the grid must not shrink below its content or the bands
+   overlap the footnote on short viewports. */
+.bandGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  flex: 1;
+}
+
+.band {
+  background: var(--mineral-10);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  cursor: pointer;
+  text-align: center;
+  font-family: var(--font-sans);
+  color: var(--mineral-80);
+  outline: none;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.band:hover { border-color: var(--mineral-42); }
+
+.band:focus-visible {
+  outline: 3px solid var(--mineral);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px var(--zest);
+}
+
+.bandAlert {
+  background: rgba(155, 74, 67, 0.10);
+  border-color: rgba(155, 74, 67, 0.28);
+}
+
+.bandLabel { font-size: 10px; color: var(--mineral-80); }
+
+.bandCount {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-weight: 650;
+  color: var(--mineral);
+  margin: 1px 0;
+}
+
+.bandAlert .bandCount { color: var(--bad); }
+
+.bandUnit { font-size: 10px; color: var(--mineral-80); }
+
+.bandFootnote { font-size: 10px; color: var(--mineral-80); margin-top: 4px; flex-shrink: 0; }
+
+/* ── FOOTER ────────────────────────────────────────────────────────────────── */
 .footer {
   display: flex;
   align-items: center;
-  gap: 22px;
-  color: var(--muted);
+  gap: 24px;
+  color: var(--mineral-80);
   font-size: 12px;
   padding-left: 2px;
 }
@@ -458,105 +554,141 @@
   display: inline-block;
   height: 14px;
   width: 1px;
-  background: rgba(64, 81, 79, 0.14);
-  margin-left: 22px;
+  background: var(--mineral-18);
+  margin-left: 24px;
   vertical-align: middle;
 }
 
-/* MODALS */
+/* ── MODALS ────────────────────────────────────────────────────────────────── */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(36, 55, 53, 0.55);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgba(51, 64, 61, 0.62);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 200;
+  padding: 24px;
 }
 
 .modal {
-  background: white;
-  border: 1px solid rgba(64, 81, 79, 0.14);
-  border-radius: 16px;
-  padding: 24px;
+  background: var(--surface-1);
+  border: 1px solid var(--mineral-18);
+  border-radius: var(--radius);
+  padding: 32px;
   width: 500px;
-  max-width: 95vw;
+  max-width: 100%;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 24px 60px rgba(30, 42, 40, 0.2);
+  box-shadow: var(--shadow);
 }
 
 .modal h2 {
-  font-family: var(--font-serif);
-  font-size: 20px;
-  margin: 0 0 4px;
-  color: #40514F;
+  font-family: var(--font-sans);
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-weight: 650;
+  margin: 0 0 6px;
+  color: var(--mineral-deep);
 }
 
-.modalSub { font-size: 12px; color: var(--muted); margin: 0 0 16px; }
+.modalSub { font-size: 13px; color: var(--mineral-80); margin: 0 0 20px; line-height: 1.5; }
 
-.dealList { display: flex; flex-direction: column; gap: 6px; }
+.dealList { display: flex; flex-direction: column; gap: 4px; }
 
 .dealRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
-  background: #F8F8F1;
-  border-radius: 8px;
+  padding: 12px;
+  background: var(--stone);
+  border-radius: var(--radius);
 }
 
-.dealName { font-size: 13px; font-weight: 500; color: var(--ink); }
-.dealMeta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.dealName { font-size: 14px; font-weight: 650; color: var(--mineral-deep); }
+.dealMeta { font-size: 12px; color: var(--mineral-80); margin-top: 3px; }
+
+.dealEmpty { text-align: center; padding: 24px; color: var(--mineral-80); font-size: 13px; }
 
 .dealBadge {
   font-size: 12px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 12px;
+  font-weight: 650;
+  padding: 5px 10px;
+  border-radius: var(--radius);
   flex-shrink: 0;
 }
 
-.badgeOk { background: rgba(190, 218, 129, 0.2); color: #5D873E; }
-.badgeWarn { background: rgba(198, 92, 46, 0.12); color: #C65C2E; }
+.badgeOk { background: var(--mineral-10); color: var(--mineral-deep); }
+.badgeWarn { background: rgba(155, 74, 67, 0.12); color: var(--bad); }
 
 .modalActions {
   display: flex;
   gap: 8px;
-  margin-top: 18px;
+  margin-top: 24px;
   justify-content: flex-end;
 }
 
+.modalTotal {
+  border-top: 1px solid var(--mineral-18);
+  margin-top: 16px;
+  padding-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.modalTotal > span { font-size: 13px; color: var(--mineral-80); }
+.modalTotal strong { color: var(--mineral-deep); font-family: var(--font-mono); }
+
 .btnSave {
-  height: 40px;
-  background: var(--mineral);
-  color: var(--stone);
-  border: none;
-  border-radius: 8px;
-  padding: 0 20px;
+  min-height: 48px;
+  background: var(--zest);
+  color: #28332F;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 0 24px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   font-family: var(--font-sans);
   outline: none;
-  transition: background 0.12s, box-shadow 0.12s;
+  transition: background var(--transition-fast), transform var(--transition-fast);
 }
 
-.btnSave:hover:not(:disabled) { background: #354644; }
-.btnSave:focus-visible { box-shadow: 0 0 0 3px var(--zest); }
-.btnSave:disabled { opacity: 0.7; cursor: default; }
+.btnSave:hover:not(:disabled) { background: var(--zest-hover); }
+.btnSave:active:not(:disabled) { transform: translateY(1px); }
+
+.btnSave:focus-visible {
+  outline: 3px solid var(--mineral);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--zest);
+}
+
+.btnSave:disabled { opacity: 0.7; cursor: not-allowed; }
 
 .btnCancel {
+  min-height: 48px;
   background: transparent;
-  color: var(--muted);
-  border: 1px solid rgba(64, 81, 79, 0.2);
-  border-radius: 8px;
-  padding: 9px 16px;
-  font-size: 13px;
+  color: var(--mineral-deep);
+  border: 1px solid var(--mineral-24);
+  border-radius: var(--radius);
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 650;
   cursor: pointer;
   font-family: var(--font-sans);
+  outline: none;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.btnCancel:hover { border-color: var(--mineral-42); background: var(--mineral-10); }
+
+.btnCancel:focus-visible {
+  outline: 3px solid var(--mineral);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--zest);
 }
 
 /* ── EDIT MONTHLY TARGETS PANEL ──────────────────────────────────────────────
@@ -564,211 +696,232 @@
    .modalActions, .btnCancel, .dealList, .dealBadge, .badgeOk, .badgeWarn) are
    left untouched. */
 .editPanel {
-  background: white;
-  border: 1px solid rgba(64, 81, 79, 0.14);
-  border-radius: 18px;
-  padding: 48px;
+  background: var(--surface-1);
+  border: 1px solid var(--mineral-18);
+  border-radius: var(--radius);
+  padding: 40px;
   width: 500px;
-  max-width: 95vw;
+  max-width: 100%;
   max-height: 88vh;
   overflow-y: auto;
-  box-shadow: 0 28px 70px rgba(36, 55, 53, 0.28);
+  box-shadow: var(--shadow);
 }
 
 .editPanelTitle {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
-  font-size: 26px;
-  line-height: 1.1;
-  color: var(--mineral);
-  margin: 0 0 8px;
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-weight: 650;
+  font-size: 30px;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  color: var(--mineral-deep);
+  margin: 0 0 10px;
 }
 
 .editPanelSub {
-  font-size: 13px;
-  color: var(--muted);
-  margin: 0 0 24px;
-  line-height: 1.5;
+  font-size: 14px;
+  color: var(--mineral-80);
+  margin: 0 0 28px;
+  line-height: 1.55;
 }
 
 .editPanelSection {
   margin-bottom: 24px;
   padding-bottom: 24px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--mineral-18);
 }
 
 .editEyebrow {
   font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-  color: var(--ink);
-  margin-bottom: 14px;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  color: var(--mineral-80);
+  margin-bottom: 16px;
 }
 
 .editField {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 20px;
 }
 
 .editField:last-child { margin-bottom: 0; }
 
 .editField label {
   font-size: 14px;
-  font-weight: 500;
-  color: var(--ink);
+  font-weight: 650;
+  color: var(--mineral-deep);
 }
 
 .editInput {
-  height: 40px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface);
-  padding: 0 12px;
-  font-size: 14px;
+  min-height: 52px;
+  border: 1px solid var(--mineral-24);
+  border-radius: var(--radius);
+  background: var(--white);
+  padding: 0 14px;
+  font-size: 15px;
   font-family: var(--font-mono);
-  color: var(--ink);
+  color: var(--mineral-deep);
   outline: none;
-  transition: border-color 0.12s, box-shadow 0.12s;
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 
+/* Zest alone is only ~1.3:1 on white; the Mineral outer ring carries the
+   WCAG 2.2 non-text 3:1 requirement. */
 .editInput:focus {
-  border-color: var(--mineral);
-  box-shadow: 0 0 0 3px var(--zest);
+  border-color: var(--zest);
+  box-shadow:
+    0 0 0 3px rgba(190, 218, 129, 0.45),
+    0 0 0 5px var(--mineral);
 }
 
 .editInput[aria-invalid="true"] { border-color: var(--bad); }
 
 .editHelper {
-  font-size: 12px;
+  font-size: 13px;
   font-family: var(--font-mono);
-  color: var(--muted);
+  color: var(--mineral-80);
 }
 
 .editError {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 650;
   color: var(--bad);
 }
 
 .editTotal {
-  background: rgba(64, 81, 79, 0.05);
-  border-radius: 8px;
-  padding: 12px 14px;
+  background: var(--stone);
+  border-radius: var(--radius);
+  padding: 14px 16px;
   font-size: 13px;
   font-family: var(--font-mono);
-  color: var(--ink);
+  color: var(--mineral-deep);
 }
 
 .editSuccess {
-  margin-top: 12px;
-  font-size: 13px;
-  font-weight: 500;
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 650;
   color: var(--good);
 }
 
 .editErrorMsg {
-  margin-top: 12px;
-  font-size: 13px;
-  font-weight: 500;
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 650;
   color: var(--bad);
 }
 
 .editActions {
   display: flex;
   gap: 8px;
-  margin-top: 24px;
+  margin-top: 28px;
   justify-content: flex-end;
 }
 
-/* RESPONSIVE */
+/* ── RESPONSIVE ────────────────────────────────────────────────────────────── */
 @media (max-width: 1200px) {
   .dashboard { padding: 16px; gap: 12px; }
-  .header { margin: -16px -16px 0; padding: 16px 22px; }
-  .topCard { grid-template-columns: 290px 1fr 140px; gap: 14px; }
+  .header { margin: -16px -16px 0; padding: 0 16px; }
+  .topCard { grid-template-columns: 290px 1fr 148px; gap: 16px; }
   .bottomGrid { gap: 12px; }
-  .metricNumber { font-size: 42px; }
-  .metricNumber.money { font-size: 34px; }
-  .bigNumber { font-size: 64px; }
+  .metricNumber { font-size: 40px; }
+  .metricNumber.money { font-size: 32px; }
+  .bigNumber { font-size: 60px; }
   .sync { display: none; }
 }
 
-/* ── MOBILE STYLES ─────────────────────────────────────────────────────────── */
-
+/* ── MOBILE ────────────────────────────────────────────────────────────────── */
 .hamburger {
   display: none;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
+  align-items: center;
+  gap: 5px;
   background: none;
   border: none;
+  border-radius: var(--radius);
   cursor: pointer;
-  padding: 4px;
+  width: 44px;
+  height: 44px;
   margin-left: auto;
+  outline: none;
 }
+
 .hamburger span {
   display: block;
   width: 20px;
   height: 2px;
-  background: rgba(255,255,255,0.8);
-  border-radius: 2px;
+  background: var(--white-90);
 }
+
+.hamburger:focus-visible { outline: 3px solid var(--zest); outline-offset: 2px; }
+
 .mobileMenu {
   display: none;
   flex-direction: column;
   gap: 12px;
-  background: #2e3c3a;
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: var(--mineral-deep);
+  padding: 16px 20px 20px;
   flex-shrink: 0;
 }
+
 .mobileMenuRow {
   display: flex;
   align-items: center;
   gap: 12px;
 }
+
 .mobileMenuRow select {
   flex: 1;
-  height: 36px;
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 6px;
-  background: rgba(255,255,255,0.07);
-  color: white;
-  padding: 0 10px;
+  min-height: 48px;
+  border: 1px solid var(--white-25);
+  border-radius: var(--radius);
+  background: var(--white-09);
+  color: var(--white);
+  padding: 0 12px;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 14px;
   outline: none;
 }
+
+.mobileMenuRow select:focus-visible { outline: 3px solid var(--zest); outline-offset: 2px; }
+
 .mobileLabel {
   font-size: 11px;
-  color: rgba(255,255,255,0.5);
-  width: 44px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: var(--white-68);
+  width: 52px;
   flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
-  
   .hamburger { display: flex; }
   .controls select,
   .controls .editBtn,
   .controls .signOutBtn,
   .sync { display: none; }
   .mobileMenu { display: flex; }
-  .header { padding: 0 16px; height: 52px; }
-  .brandRow { gap: 10px; }
-  .logoImg { height: 18px; }
+  .mobileMenu .editBtn,
+  .mobileMenu .signOutBtn { flex: 1; min-height: 48px; justify-content: center; }
+  .mobileMenu .signOutBtn { border-color: var(--white-25); }
+  .header { padding: 0 20px; height: 60px; }
+  .brandRow { gap: 12px; }
+  .logoImg { width: 84px; }
   .divider { display: none; }
   .header h1 { display: none; }
   .dashboard {
     height: auto;
     min-height: 100vh;
     overflow-y: auto;
-    padding: 12px;
+    padding: 20px;
     grid-template-rows: auto auto 1fr;
   }
+  .header { margin: -20px -20px 0; }
   .main {
     display: flex;
     flex-direction: column;
@@ -778,8 +931,8 @@
   .topCard {
     display: flex !important;
     flex-direction: column;
-    gap: 16px;
-    padding: 18px 16px;
+    gap: 20px;
+    padding: 20px 16px;
   }
   .chartArea { min-height: 180px; }
   .mainChartWrap { height: 160px; }
@@ -787,10 +940,10 @@
     display: flex;
     flex-direction: row;
     gap: 16px;
-    padding: 12px;
+    padding: 16px;
   }
   .sideSummary > div { flex: 1; }
-  .sideSummary strong { font-size: 22px; }
+  .sideSummary strong { font-size: 24px; }
   .sideRule { display: none; }
   .bottomGrid {
     display: flex;
@@ -801,19 +954,19 @@
   .metricNumber { font-size: 40px !important; }
   .metricNumber.money { font-size: 32px !important; }
   .smallChartWrap { display: none; }
-  .ageChartWrap { display: none; }
   .bigNumber { font-size: 52px !important; }
   .footer {
     flex-direction: column;
+    align-items: flex-start;
     gap: 4px;
-    font-size: 10px;
+    font-size: 11px;
     padding: 8px 0 16px;
   }
   .footer span::after { display: none !important; }
 
   /* Edit panel: tighter padding, full-width stacked actions. */
-  .editPanel { padding: 24px; }
-  .editActions { flex-direction: column-reverse; }
-  .editActions button { width: 100%; }
-  .btnSave, .editActions .btnCancel { width: 100%; }
+  .overlay { padding: 0; align-items: stretch; }
+  .modal, .editPanel { padding: 24px 20px; max-height: 100vh; width: 100%; border: 0; }
+  .editActions, .modalActions { flex-direction: column-reverse; }
+  .editActions button, .modalActions button { width: 100%; }
 }

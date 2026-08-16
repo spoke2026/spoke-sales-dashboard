@@ -1,17 +1,12 @@
-import { DM_Sans, DM_Serif_Display, DM_Mono } from 'next/font/google'
+import { DM_Sans, DM_Mono } from 'next/font/google'
 import './globals.css'
 
+// Spoke brand standard v1.1: DM Sans for everything, DM Mono for data only.
+// The serif face is retired — no display serif anywhere in the system.
 const dmSans = DM_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  axes: ['opsz'],
   variable: '--font-sans',
-})
-
-const dmSerif = DM_Serif_Display({
-  subsets: ['latin'],
-  weight: ['400'],
-  style: ['normal', 'italic'],
-  variable: '--font-serif',
 })
 
 const dmMono = DM_Mono({
@@ -27,7 +22,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${dmSerif.variable} ${dmMono.variable}`}>
+    <html lang="en" className={`${dmSans.variable} ${dmMono.variable}`}>
       <body>{children}</body>
     </html>
   )

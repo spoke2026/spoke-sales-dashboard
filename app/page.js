@@ -101,7 +101,7 @@ const todayLinePlugin = (daysGone, daysInMonth) => ({
     ctx.fillStyle = '#40514F'
     ctx.fillRect(todayX - 18, chartArea.top, 36, 16)
     ctx.fillStyle = '#fff'
-    ctx.font = 'bold 9px sans-serif'
+    ctx.font = '700 9px "DM Sans", system-ui, sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillText('Today', todayX, chartArea.top + 8)
@@ -357,7 +357,7 @@ export default function Dashboard() {
       {/* HEADER */}
       <header className={styles.header}>
         <div className={styles.brandRow}>
-          <img src="/spoke-logo.png" alt="Spoke" className={styles.logoImg} />
+          <img src="/spoke-logo-white.png" alt="Spoke" className={styles.logoImg} />
           <div className={styles.divider} />
           <h1>Sales Performance Dashboard</h1>
         </div>
@@ -431,7 +431,7 @@ export default function Dashboard() {
         <section className={`${styles.card} ${styles.topCard}`}>
           <div className={styles.salesLeft}>
             <div>
-              <h2 className={styles.sectionLabel}>Actual Sales vs Budget {rep !== 'full-team' && <span style={{fontSize:'11px',fontWeight:400,textTransform:'none',letterSpacing:0}}>· Full team</span>}</h2>
+              <h2 className={styles.sectionLabel}>Actual Sales vs Budget {rep !== 'full-team' && <span className={styles.sectionLabelNote}>· Full team</span>}</h2>
               <div className={styles.bigNumber}>{fmt(sales.actual)}</div>
               <p className={styles.budgetLine}>of {fmt(sales.budget)} budget</p>
               <div className={styles.budgetPill}>
@@ -568,7 +568,7 @@ export default function Dashboard() {
                 data={{
                   labels,
                   datasets: [
-                    { data: pipelineData, backgroundColor: '#BEDA81', borderRadius: 3, barThickness: 5 },
+                    { data: pipelineData, backgroundColor: '#40514F', borderRadius: 0, barThickness: 5 },
                     { data: paceArray(pipeline.target, daysInMonth), type: 'line', borderColor: '#BEDA81', borderDash: [4, 5], borderWidth: 1.7, pointRadius: 0 },
                   ],
                 }}
@@ -596,23 +596,23 @@ export default function Dashboard() {
                 vs<br />last month
               </div>
             </div>
-            <div style={{ fontSize: '9px', color: 'var(--muted)', margin: '6px 0', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+            <div className={styles.bandEyebrow}>
               By age band · click to drill
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', flex: 1 }}>
+            <div className={styles.bandGrid}>
               {dealAge.bands.map((band, i) => (
-                <button key={i} onClick={() => setDrillBand(band)} style={{
-                  background: i === 3 && band.count > 0 ? 'rgba(198,92,46,0.1)' : 'rgba(64,81,79,0.06)',
-                  border: i === 3 && band.count > 0 ? '1px solid rgba(198,92,46,0.2)' : '1px solid transparent',
-                  borderRadius: '8px', padding: '6px 8px', cursor: 'pointer', textAlign: 'center', fontFamily: 'var(--font-sans)',
-                }}>
-                  <div style={{ fontSize: '9px', color: 'var(--muted)' }}>{band.label}</div>
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', color: i === 3 && band.count > 0 ? 'var(--bad)' : 'var(--mineral)', lineHeight: 1 }}>{band.count}</div>
-                  <div style={{ fontSize: '9px', color: 'var(--muted)' }}>deal{band.count !== 1 ? 's' : ''}</div>
+                <button
+                  key={i}
+                  onClick={() => setDrillBand(band)}
+                  className={`${styles.band} ${i === 3 && band.count > 0 ? styles.bandAlert : ''}`}
+                >
+                  <div className={styles.bandLabel}>{band.label}</div>
+                  <div className={styles.bandCount}>{band.count}</div>
+                  <div className={styles.bandUnit}>deal{band.count !== 1 ? 's' : ''}</div>
                 </button>
               ))}
             </div>
-            <div style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '6px' }}>Bespoke Ops · excl. Back Order &amp; Samples</div>
+            <div className={styles.bandFootnote}>Bespoke Ops · excl. Back Order &amp; Samples</div>
           </article>
 
         </section>
@@ -632,7 +632,7 @@ export default function Dashboard() {
             <p className={styles.modalSub}>Days from deal creation · Bespoke Operations · close date this month</p>
             <div className={styles.dealList}>
               {drillBand.deals.length === 0
-                ? <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No deals in this range</div>
+                ? <div className={styles.dealEmpty}>No deals in this range</div>
                 : drillBand.deals.map((deal, i) => (
                   <div key={i} className={styles.dealRow}>
                     <div>
@@ -658,7 +658,7 @@ export default function Dashboard() {
             <p className={styles.modalSub}>Connected outbound calls · most recent first</p>
             <div className={styles.dealList}>
               {drillCalls.length === 0
-                ? <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No calls found</div>
+                ? <div className={styles.dealEmpty}>No calls found</div>
                 : drillCalls.map((call, i) => {
                   const nzt = new Date(call.date)
                   return (
@@ -689,7 +689,7 @@ export default function Dashboard() {
             <p className={styles.modalSub}>Revenue Train · new deals created this month</p>
             <div className={styles.dealList}>
               {drillPipeline.length === 0
-                ? <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No deals added this month</div>
+                ? <div className={styles.dealEmpty}>No deals added this month</div>
                 : drillPipeline.map((deal, i) => {
                   const nzt = new Date(deal.date)
                   return (
@@ -707,8 +707,8 @@ export default function Dashboard() {
                   )
                 })}
             </div>
-            <div style={{ borderTop: '1px solid var(--line)', marginTop: '12px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '12px', color: 'var(--muted)' }}>Total: <strong style={{ color: 'var(--ink)' }}>${drillPipelineTotal.toLocaleString()}</strong></span>
+            <div className={styles.modalTotal}>
+              <span>Total: <strong>${drillPipelineTotal.toLocaleString()}</strong></span>
               <button className={styles.btnCancel} onClick={() => setDrillPipeline(null)}>Close</button>
             </div>
           </div>
@@ -856,8 +856,7 @@ function MetricCard({ icon, title, actual, target, isMoney, daysGone, daysInMont
       </div>
       <div className={styles.metricMain}>
         <div>
-          <div className={`${styles.metricNumber} ${isMoney ? styles.money : ''}`}
-            style={onDrill ? { cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '4px' } : {}}
+          <div className={`${styles.metricNumber} ${isMoney ? styles.money : ''} ${onDrill ? styles.metricNumberDrill : ''}`}
             onClick={onDrill}>{displayActual}</div>
           <div className={styles.targetLine}>of <em>{displayTarget}</em> target</div>
         </div>
