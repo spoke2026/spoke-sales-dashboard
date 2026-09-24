@@ -4,6 +4,8 @@
 --
 -- Note: "kpi_company_closure rows" expects 0 at go-live. Once real closures are
 -- added it shows that count and reads false; that row alone is then expected.
+--
+-- Superseded by 0004_kpi_library_verify.sql once 0004 is applied. After 0004 the rows 'policies on kpi_definition', 'policies on kpi_audit_log' and 'policy totals' read false by design. Do not change policies to make them pass.
 
 with
 kpi_tables(t) as (

@@ -509,3 +509,134 @@
   }
   .statsRow { gap: 20px; }
 }
+
+/* ── KPI LIBRARY (Phase 2a) ────────────────────────────────────────────── */
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.actionsRow .manageLink {
+  margin-bottom: 0;
+}
+
+.textarea {
+  min-height: 120px;
+  border: 1px solid var(--mineral-24);
+  border-radius: var(--radius);
+  background: var(--white);
+  padding: 12px 14px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--mineral-deep);
+  outline: none;
+  resize: vertical;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.textarea:focus {
+  border-color: var(--zest);
+  box-shadow:
+    0 0 0 3px rgba(190, 218, 129, 0.45),
+    0 0 0 5px var(--mineral);
+}
+
+.textarea[aria-invalid="true"] { border-color: var(--bad); }
+
+.textareaMono {
+  composes: textarea;
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.formCard {
+  max-width: 680px;
+}
+
+.definitionList {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px 24px;
+}
+
+.definitionList dt {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--mineral-80);
+}
+
+.definitionList dd {
+  margin: 0;
+  font-size: 15px;
+  color: var(--mineral-deep);
+  white-space: pre-line;
+}
+
+.codeBlock {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--surface-0);
+  padding: 16px;
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.statusTag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mineral);
+  border: 1px solid var(--mineral-24);
+  padding: 4px 8px;
+}
+
+.statusLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.versionNotice {
+  background: var(--surface-1);
+  border-left: 4px solid var(--mineral);
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 600px) {
+  .definitionList {
+    grid-template-columns: 1fr;
+    gap: 4px 0;
+  }
+  .definitionList dd {
+    margin-bottom: 12px;
+  }
+}
+
+/* The Cancel link-button sits in .formActions beside a button. */
+.formActions .manageLink {
+  justify-content: center;
+  margin-bottom: 0;
+}
+
+/* The full-page form is the White card itself, not a Stone panel inside it. */
+.formCard .form {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin-bottom: 0;
+}
+
+@media (max-width: 600px) {
+  .formActions .manageLink {
+    width: 100%;
+  }
+}

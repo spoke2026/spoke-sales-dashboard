@@ -3,39 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatDayMonth, formatDayMonthYear } from '@/lib/kpi/format'
+import { callApi, describeError } from '@/lib/kpi/clientApi'
 import styles from '../kpis.module.css'
 
 const EMAIL_HELPER = 'Used to link this person to their login later.'
 const REASON_PLACEHOLDER = 'Christmas shutdown'
-
-async function callApi(url, method, body) {
-  try {
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    let json = null
-    try {
-      json = await res.json()
-    } catch {
-      json = null
-    }
-    return { status: res.status, json }
-  } catch {
-    return { status: 0, json: null }
-  }
-}
-
-function describeError(status, json, recognizedFields) {
-  if (status === 401) return { redirect: true }
-  if (status === 403) return { alert: 'Only the admin can make changes here.' }
-  if (status === 0 || status >= 500) return { alert: "We couldn't save that. Try again." }
-  if (json && json.field && recognizedFields.includes(json.field)) {
-    return { field: json.field, message: json.error }
-  }
-  return { alert: (json && json.error) || "We couldn't save that. Try again." }
-}
 
 export default function AdminPanels({ teams, people, closures, range }) {
   const router = useRouter()

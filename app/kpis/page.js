@@ -109,11 +109,16 @@ export default async function KpisPage({ searchParams }) {
         Every KPI will be judged red or green against its target. Scorecards and targets come
         next. First, set up who is scored and the working-day calendar.
       </p>
-      {isAdmin && (
-        <Link href="/kpis/admin" className={styles.manageLink}>
-          Manage people and teams
+      <div className={styles.actionsRow}>
+        <Link href="/kpis/library" className={styles.manageLink}>
+          KPI library
         </Link>
-      )}
+        {isAdmin && (
+          <Link href="/kpis/admin" className={styles.manageLink}>
+            Manage people and teams
+          </Link>
+        )}
+      </div>
 
       {queryError ? (
         <p className={styles.errorState} role="alert">
