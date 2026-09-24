@@ -8,6 +8,7 @@ import {
 } from 'chart.js'
 import { Line, Bar } from 'react-chartjs-2'
 import { createClient } from '@/lib/supabase/client'
+import AppNav from '@/components/AppNav'
 import styles from './dashboard.module.css'
 
 ChartJS.register(
@@ -361,6 +362,7 @@ export default function Dashboard() {
           <img src="/spoke-logo-white.png" alt="Spoke" className={styles.logoImg} />
           <div className={styles.divider} />
           <h1>Sales Performance Dashboard</h1>
+          <AppNav />
         </div>
         <div className={styles.controls}>
           <select value={month} onChange={e => setMonth(e.target.value)}>

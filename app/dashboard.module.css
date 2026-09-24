@@ -832,6 +832,7 @@
 @media (max-width: 1200px) {
   .dashboard { padding: 16px; gap: 12px; }
   .header { margin: -16px -16px 0; padding: 0 16px; }
+  .header h1 { display: none; }
   .topCard { grid-template-columns: 290px 1fr 148px; gap: 16px; }
   .bottomGrid { gap: 12px; }
   .metricNumber { font-size: 40px; }
