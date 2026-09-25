@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { isUuid, latestVersions, labelFor, formatExampleTarget, readStoredNumber, toDisplayNumber, savedByLabel } from '@/lib/kpi/library'
 import { formatMonthYear, formatTimestampDate, formatDayMonthYear } from '@/lib/kpi/format'
+import { todayInAuckland } from '@/lib/kpi/calendar'
 import {
   formatQuarter,
   formatQuarterMonths,
@@ -256,7 +257,8 @@ export default async function ScorecardPage({ params, searchParams }) {
         <div className={styles.versionNotice} role="note">
           <p className={styles.confirmText}>
             This scorecard is locked. You can change its targets as the admin. Each change needs a
-            reason, and earlier targets stay in the history.
+            reason, and earlier targets stay in the history. Changes apply to this month and later
+            months. Months that have ended keep the targets they had.
           </p>
         </div>
       )}
@@ -297,6 +299,7 @@ export default async function ScorecardPage({ params, searchParams }) {
           rows={rows}
           addOptions={addOptions}
           hasPublishedKpis={hasPublishedKpis}
+          todayNz={todayInAuckland()}
         />
       </section>
 

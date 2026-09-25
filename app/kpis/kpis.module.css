@@ -751,3 +751,260 @@
     gap: 8px;
   }
 }
+
+/* ── WINDOW SELECTOR (Phase 3a) ─────────────────────────────────────────── */
+.windowBar {
+  background: var(--white);
+  border: 1px solid var(--mineral-18);
+  padding: 16px 24px;
+  margin-bottom: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 601px) and (min-height: 600px) {
+  .windowBar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+  .shell:has(.windowBar) {
+    scroll-padding-top: 160px;
+  }
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  background: var(--white);
+  border: 1px solid var(--mineral-24);
+  color: var(--mineral);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+  outline: none;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.chip:hover { background: var(--mineral-10); }
+
+.chip:focus-visible {
+  outline: 3px solid var(--mineral);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--zest);
+}
+
+.chip[aria-current="true"] {
+  background: var(--mineral);
+  color: var(--white);
+  border-color: var(--mineral);
+}
+
+.chipDisabled {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px dashed var(--mineral-24);
+  color: var(--mineral-80);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.windowMore {
+  margin-bottom: 32px;
+}
+
+.windowMore summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 650;
+  cursor: pointer;
+  outline: none;
+}
+
+.windowMore summary:focus-visible {
+  outline: 3px solid var(--mineral);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--zest);
+}
+
+.chipGroupLabel {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--mineral-80);
+  margin: 16px 0 8px;
+}
+
+.rangeForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.rangeForm .field {
+  margin: 0;
+}
+
+/* ── PERSON SCORECARD CARDS (Phase 3a) ─────────────────────────────────── */
+.kpiCards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 901px) {
+  .kpiCards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.kpiCard {
+  background: var(--white);
+  border: 1px solid var(--mineral-18);
+  padding: 24px;
+}
+
+.kpiCardTitle {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 12px;
+  margin: 12px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.statusGreen { background: var(--good); }
+.statusRed { background: var(--bad); }
+
+.figures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.figures dt {
+  font-size: 13px;
+  color: var(--mineral-80);
+}
+
+.figures dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  color: var(--mineral-deep);
+}
+
+.cardNote {
+  font-size: 13px;
+  color: var(--mineral-80);
+  margin-top: 8px;
+}
+
+/* ── ENTRY GRID (Phase 3a) ──────────────────────────────────────────────── */
+.entryInput {
+  width: 96px;
+}
+
+.ratioPair {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.missingFlag {
+  color: var(--bad);
+  font-size: 13px;
+  font-weight: 650;
+  margin: 4px 0 0;
+}
+
+.weekNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+@media (max-width: 600px) {
+  .entryInput {
+    width: 100%;
+  }
+  .ratioPair {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+  }
+}
+
+/* The grid's visually hidden labels are absolutely positioned; a positioned
+   wrap keeps them inside its horizontal scroll so they never widen the page. */
+.gridTableWrap {
+  position: relative;
+}
+
+/* Above 600px the two ratio inputs stack, so a week of days fits without
+   scrolling the grid sideways at desktop widths. */
+@media (min-width: 601px) {
+  .ratioPair {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Week links reuse the secondary button look; as links they need centring. */
+.weekNav a {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.weekNav a[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* KPI card titles are links: Mineral text, never the browser's default blue. */
+.kpiCardTitle a {
+  color: var(--mineral-deep);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  outline: none;
+}
+
+.kpiCardTitle a:hover {
+  color: var(--mineral);
+}
+
+.kpiCardTitle a:focus-visible {
+  outline: 3px solid var(--mineral);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--zest);
+}

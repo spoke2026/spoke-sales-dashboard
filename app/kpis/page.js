@@ -27,6 +27,9 @@ export default async function KpisPage({ searchParams }) {
   const { data: isAdminData, error: adminError } = await supabase.rpc('is_admin')
   const isAdmin = !adminError && isAdminData === true
 
+  const { data: meData, error: meError } = await supabase.rpc('kpi_my_person_id')
+  const me = !meError ? meData : null
+
   const rawMonth = searchParams?.month
   const monthStart = typeof rawMonth === 'string' && MONTH_PARAM.test(rawMonth)
     ? `${rawMonth}-01`
@@ -106,10 +109,20 @@ export default async function KpisPage({ searchParams }) {
       <p className={styles.eyebrow}>KPIs</p>
       <h1 className={styles.pageTitle}>KPI scorecard</h1>
       <p className={styles.lede}>
-        Scorecards set each person&apos;s KPIs and monthly targets for the quarter. Red and green
-        status comes next.
+        Scorecards set each person&apos;s KPIs and monthly targets for the quarter. Each KPI shows
+        red or green against its target for the window you choose.
       </p>
       <div className={styles.actionsRow}>
+        {me !== null && (
+          <>
+            <Link href={`/kpis/people/${me}`} className={styles.manageLink}>
+              My scorecard
+            </Link>
+            <Link href="/kpis/entry" className={styles.manageLink}>
+              Enter actuals
+            </Link>
+          </>
+        )}
         <Link href="/kpis/scorecards" className={styles.manageLink}>
           Scorecards
         </Link>
@@ -181,7 +194,13 @@ export default async function KpisPage({ searchParams }) {
                   <tbody>
                     {activePeople.map(person => (
                       <tr key={person.id}>
-                        <td>{person.full_name}</td>
+                        <td>
+                          {person.scorecard_type === 'company_only' ? (
+                            person.full_name
+                          ) : (
+                            <Link href={`/kpis/people/${person.id}`}>{person.full_name}</Link>
+                          )}
+                        </td>
                         <td>{teamNameById.get(person.primary_team_id) ?? 'Not set'}</td>
                         <td>{personNameById.get(person.manager_id) ?? 'Not set'}</td>
                         <td>{person.is_contractor === true ? 'Contractor' : 'Internal'}</td>

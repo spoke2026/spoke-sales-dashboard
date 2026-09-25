@@ -1,23 +1,24 @@
--- 0005_kpi_scorecards_verify.sql
--- Superseded by 0006_kpi_entry_verify.sql once 0006 is applied. After 0006 the rows 'summary', 'policies on kpi_actual_daily', 'policies on kpi_manual_entry' and 'policy totals' read false by design. Do not change policies to make them pass.
--- Note on the 0003 verify: after 0005 its row 'policies on kpi_audit_log' reads true again. 0005 replaced the two insert policies with one (kpi_audit_log_insert_trigger), so the count matches 0003's expectation of 1 by coincidence. 0003's kpi_audit_log_insert policy is not back.
--- Read-only check of migration 0005, and the full current-state authority for
--- 0003's and 0004's structural checks too (D16). Paste into the Supabase SQL
--- editor and run. The first row is "summary"; if it shows pass = true and no
--- other row shows pass = false, the migration is correctly applied. It writes
--- nothing.
+-- 0006_kpi_entry_verify.sql
+-- Read-only check of migration 0006, and the full current-state authority
+-- (D18) now that 0006 is applied: the 0005 verify's rows 'summary', 'policies
+-- on kpi_actual_daily', 'policies on kpi_manual_entry', and 'policy totals'
+-- read false by design after 0006 (0005's header notes this). Paste into the
+-- Supabase SQL editor and run. The first row is "summary"; if it shows
+-- pass = true and no other row shows pass = false, the migration is
+-- correctly applied. It writes nothing.
 --
--- Carries every 0004 verify check except "policy kpi_audit_log_insert_proposal
--- shape" (that policy no longer exists after 0005; it is replaced by
--- kpi_audit_log_insert_trigger, checked separately below). Updates the policy
--- expectations and totals for the six new scoped policies and the replaced
--- audit-log insert policy, and adds the 0005 checks: the scoped and trigger
--- policies' shape, the two dropped policies' absence, the audit gate's prosrc
--- and grants, the thirteen new functions' existence and grants, the
--- SECURITY DEFINER count, the three guard triggers' timing and event bits, the
--- pre-existing audit trigger still present on the three lifecycle tables,
--- kpi_scorecard's and kpi_target's exact column lists, and the three FKs and
--- nine CHECK constraints validated.
+-- Carries every 0005 verify check, with the policy expectations updated for
+-- kpi_actual_daily and kpi_manual_entry (now 1,2,2,0 each) and the totals
+-- '12, 16, 13, 3'. Adds: the four new policies exist with their cmd, roles
+-- {authenticated}, permissive, and kpi_actual_daily_insert_manual's
+-- with_check mentions 'manual', 'kpi_actual_matches_entry', and
+-- 'kpi_is_owner_or_manager' (Roscoe: the WHO check, not just WHAT); the
+-- eleven new functions exist, invoker, anon cannot execute, authenticated
+-- can; the two triggers' timing and event bits; kpi_audit_row still on
+-- kpi_manual_entry; kpi_manual_entry's and kpi_actual_daily's exact column
+-- lists (rule 11); the unique constraint the upsert relies on and
+-- kpi_actual_daily's primary key; the sync invariant both ways; the Auckland
+-- spot checks, read-only on the live project's own time zone data (rule 13).
 
 with
 kpi_tables(t) as (
@@ -33,8 +34,8 @@ expected_policies(t, sel, ins, upd, del) as (
     ('kpi_scorecard', 1, 2, 2, 0),
     ('kpi_assignment', 1, 2, 1, 1),
     ('kpi_target', 1, 2, 1, 1),
-    ('kpi_actual_daily', 1, 1, 1, 0),
-    ('kpi_manual_entry', 1, 1, 1, 0),
+    ('kpi_actual_daily', 1, 2, 2, 0),
+    ('kpi_manual_entry', 1, 2, 2, 0),
     ('kpi_public_holiday', 1, 0, 0, 0),
     ('kpi_company_closure', 1, 1, 1, 1),
     ('kpi_calendar_day', 1, 0, 1, 0),
@@ -118,6 +119,28 @@ actual_kpi_target_columns as (
    where attrelid = to_regclass('public.kpi_target')
      and attnum > 0 and not attisdropped
 ),
+expected_kpi_manual_entry_columns(c) as (
+  values
+    ('id'), ('person_id'), ('kpi_definition_id'), ('kpi_version'), ('date'),
+    ('value'), ('numerator'), ('denominator'), ('entered_by'), ('entered_at')
+),
+actual_kpi_manual_entry_columns as (
+  select attname as c
+    from pg_attribute
+   where attrelid = to_regclass('public.kpi_manual_entry')
+     and attnum > 0 and not attisdropped
+),
+expected_kpi_actual_daily_columns(c) as (
+  values
+    ('person_id'), ('kpi_definition_id'), ('kpi_version'), ('date'),
+    ('value'), ('numerator'), ('denominator'), ('source'), ('calculated_at')
+),
+actual_kpi_actual_daily_columns as (
+  select attname as c
+    from pg_attribute
+   where attrelid = to_regclass('public.kpi_actual_daily')
+     and attnum > 0 and not attisdropped
+),
 expected_scorecard_fks(name) as (
   values
     ('kpi_scorecard_approved_by_fkey'),
@@ -137,7 +160,7 @@ expected_scorecard_checks(name) as (
 expected_target_checks(name) as (
   values ('kpi_target_change_reason_length')
 ),
-expected_new_functions(sig) as (
+expected_new_functions_0005(sig) as (
   values
     ('public.kpi_my_person_id()'),
     ('public.kpi_is_owner_or_manager(uuid)'),
@@ -153,6 +176,20 @@ expected_new_functions(sig) as (
     ('public.kpi_assignment_guard()'),
     ('public.kpi_target_guard()')
 ),
+expected_new_functions_0006(sig) as (
+  values
+    ('public.kpi_nz_date(timestamptz)'),
+    ('public.kpi_owner_entry_open(date,timestamptz)'),
+    ('public.kpi_may_enter_for(uuid)'),
+    ('public.kpi_can_write_entry(uuid,date)'),
+    ('public.kpi_entry_cells(uuid,date,date)'),
+    ('public.kpi_entry_kpi_version(uuid,uuid,date)'),
+    ('public.kpi_entry_people()'),
+    ('public.kpi_actual_matches_entry(uuid,uuid,integer,date,numeric,numeric,numeric)'),
+    ('public.kpi_window_targets(uuid,date,date)'),
+    ('public.kpi_manual_entry_guard()'),
+    ('public.kpi_manual_entry_sync()')
+),
 expected_scoped_policies(name, table_name, cmd) as (
   values
     ('kpi_scorecard_insert_scoped', 'kpi_scorecard', 'INSERT'),
@@ -161,7 +198,11 @@ expected_scoped_policies(name, table_name, cmd) as (
     ('kpi_assignment_delete_scoped', 'kpi_assignment', 'DELETE'),
     ('kpi_target_insert_scoped', 'kpi_target', 'INSERT'),
     ('kpi_target_delete_scoped', 'kpi_target', 'DELETE'),
-    ('kpi_audit_log_insert_trigger', 'kpi_audit_log', 'INSERT')
+    ('kpi_audit_log_insert_trigger', 'kpi_audit_log', 'INSERT'),
+    ('kpi_manual_entry_insert_scoped', 'kpi_manual_entry', 'INSERT'),
+    ('kpi_manual_entry_update_scoped', 'kpi_manual_entry', 'UPDATE'),
+    ('kpi_actual_daily_insert_manual', 'kpi_actual_daily', 'INSERT'),
+    ('kpi_actual_daily_update_manual', 'kpi_actual_daily', 'UPDATE')
 ),
 proposal_policy_checks(check_name, expected, actual, pass) as (
   select
@@ -183,7 +224,7 @@ proposal_policy_checks(check_name, expected, actual, pass) as (
     on pol.schemaname = 'public' and pol.policyname = e.expected_name
 ),
 checks(check_name, expected, actual, pass) as (
-  -- ── 0003/0004 structural checks, current-state (D16) ───────────────────
+  -- ── 0003/0004/0005 structural checks, current-state (D16/D18) ──────────
 
   select 'table ' || k.t || ' exists with RLS',
          'exists, rls on',
@@ -214,11 +255,11 @@ checks(check_name, expected, actual, pass) as (
 
   union all
   select 'policy totals (select, insert, update, delete)',
-         '12, 14, 11, 3',
+         '12, 16, 13, 3',
          format('%s, %s, %s, %s',
                 coalesce(sum(sel), 0), coalesce(sum(ins), 0), coalesce(sum(upd), 0), coalesce(sum(del), 0)),
-         coalesce(sum(sel), 0) = 12 and coalesce(sum(ins), 0) = 14
-           and coalesce(sum(upd), 0) = 11 and coalesce(sum(del), 0) = 3
+         coalesce(sum(sel), 0) = 12 and coalesce(sum(ins), 0) = 16
+           and coalesce(sum(upd), 0) = 13 and coalesce(sum(del), 0) = 3
     from actual_policies
 
   union all
@@ -360,8 +401,6 @@ checks(check_name, expected, actual, pass) as (
     ) latest
    where length(btrim(latest.name)) < 1 or length(btrim(latest.name)) > 120
 
-  -- ── 0005 checks ──────────────────────────────────────────────────────────
-
   union all
   select 'policy ' || esp.name || ' shape',
          format('cmd=%s roles={authenticated} permissive', esp.cmd),
@@ -454,17 +493,8 @@ checks(check_name, expected, actual, pass) as (
            and has_function_privilege('authenticated', ef.sig, 'execute'),
            false
          )
-    from expected_new_functions ef
+    from expected_new_functions_0005 ef
     left join pg_proc p on p.oid = to_regprocedure(ef.sig)
-
-  union all
-  select 'no public kpi_% function is SECURITY DEFINER',
-         '0',
-         count(*)::text,
-         count(*) = 0
-    from pg_proc p
-    join pg_namespace n on n.oid = p.pronamespace
-   where n.nspname = 'public' and p.proname like 'kpi\_%' and p.prosecdef = true
 
   union all
   select 'trigger kpi_scorecard_guard is BEFORE, FOR EACH ROW, INSERT and UPDATE (no DELETE)',
@@ -531,7 +561,7 @@ checks(check_name, expected, actual, pass) as (
            select 1 from pg_trigger t
             where t.tgrelid = to_regclass('public.' || tt.t) and t.tgname = 'kpi_audit_row'
          )
-    from (values ('kpi_scorecard'), ('kpi_assignment'), ('kpi_target')) as tt(t)
+    from (values ('kpi_scorecard'), ('kpi_assignment'), ('kpi_target'), ('kpi_manual_entry')) as tt(t)
 
   union all
   select 'kpi_scorecard has exactly its 16 expected columns',
@@ -611,10 +641,238 @@ checks(check_name, expected, actual, pass) as (
     left join pg_constraint con
       on con.conname = etc.name and con.conrelid = to_regclass('public.kpi_target')
 
-  -- The audit gate (D6) assumes no client can set kpi.audit_writer. PostgREST
-  -- exposes every public function a signed-in user may execute, so any OTHER
-  -- such function that calls set_config would be a way in. This reads the live
-  -- project rather than trusting that only this repo's functions exist (rule 13).
+  -- ── 0006 checks ──────────────────────────────────────────────────────────
+
+  union all
+  select 'function ' || ef.sig || ' exists, invoker, granted correctly',
+         'exists, invoker, anon=false, authenticated=true',
+         coalesce(
+           format('%s, anon=%s, authenticated=%s',
+                  case when p.prosecdef then 'SECURITY DEFINER' else 'invoker' end,
+                  has_function_privilege('anon', ef.sig, 'execute'),
+                  has_function_privilege('authenticated', ef.sig, 'execute')),
+           'missing'
+         ),
+         coalesce(
+           p.prosecdef = false
+           and not has_function_privilege('anon', ef.sig, 'execute')
+           and has_function_privilege('authenticated', ef.sig, 'execute'),
+           false
+         )
+    from expected_new_functions_0006 ef
+    left join pg_proc p on p.oid = to_regprocedure(ef.sig)
+
+  union all
+  select 'no public kpi_% function is SECURITY DEFINER',
+         '0',
+         count(*)::text,
+         count(*) = 0
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname like 'kpi\_%' and p.prosecdef = true
+
+  union all
+  select 'trigger kpi_manual_entry_guard is BEFORE, FOR EACH ROW, INSERT and UPDATE (no DELETE)',
+         'before row, insert+update, no delete',
+         coalesce(
+           format('%s row, insert=%s update=%s delete=%s',
+                  case when (t.tgtype::int & 2) = 2 then 'before' else 'not-before' end,
+                  (t.tgtype::int & 4) = 4, (t.tgtype::int & 16) = 16, (t.tgtype::int & 8) = 8),
+           'missing'
+         ),
+         coalesce(
+           (t.tgtype::int & 2) = 2 and (t.tgtype::int & 1) = 1
+           and (t.tgtype::int & 4) = 4 and (t.tgtype::int & 16) = 16
+           and (t.tgtype::int & 8) = 0,
+           false
+         )
+    from pg_trigger t
+   where t.tgrelid = to_regclass('public.kpi_manual_entry') and t.tgname = 'kpi_manual_entry_guard'
+
+  union all
+  select 'trigger kpi_manual_entry_sync is AFTER, FOR EACH ROW, INSERT and UPDATE (no DELETE)',
+         'after row, insert+update, no delete',
+         coalesce(
+           format('%s row, insert=%s update=%s delete=%s',
+                  case when (t.tgtype::int & 2) = 2 then 'before' else 'after' end,
+                  (t.tgtype::int & 4) = 4, (t.tgtype::int & 16) = 16, (t.tgtype::int & 8) = 8),
+           'missing'
+         ),
+         coalesce(
+           (t.tgtype::int & 2) = 0 and (t.tgtype::int & 1) = 1
+           and (t.tgtype::int & 4) = 4 and (t.tgtype::int & 16) = 16
+           and (t.tgtype::int & 8) = 0,
+           false
+         )
+    from pg_trigger t
+   where t.tgrelid = to_regclass('public.kpi_manual_entry') and t.tgname = 'kpi_manual_entry_sync'
+
+  union all
+  select 'kpi_manual_entry has exactly its 10 expected columns',
+         '10 columns, no more, no less',
+         format('%s expected-and-present, %s unexpected, %s missing',
+                (select count(*) from expected_kpi_manual_entry_columns e
+                  join actual_kpi_manual_entry_columns a on a.c = e.c),
+                (select count(*) from actual_kpi_manual_entry_columns a
+                  where not exists (select 1 from expected_kpi_manual_entry_columns e where e.c = a.c)),
+                (select count(*) from expected_kpi_manual_entry_columns e
+                  where not exists (select 1 from actual_kpi_manual_entry_columns a where a.c = e.c))),
+         (select count(*) from expected_kpi_manual_entry_columns) = 10
+           and not exists (
+             select 1 from actual_kpi_manual_entry_columns a
+              where not exists (select 1 from expected_kpi_manual_entry_columns e where e.c = a.c)
+           )
+           and not exists (
+             select 1 from expected_kpi_manual_entry_columns e
+              where not exists (select 1 from actual_kpi_manual_entry_columns a where a.c = e.c)
+           )
+
+  union all
+  select 'kpi_actual_daily has exactly its 9 expected columns',
+         '9 columns, no more, no less',
+         format('%s expected-and-present, %s unexpected, %s missing',
+                (select count(*) from expected_kpi_actual_daily_columns e
+                  join actual_kpi_actual_daily_columns a on a.c = e.c),
+                (select count(*) from actual_kpi_actual_daily_columns a
+                  where not exists (select 1 from expected_kpi_actual_daily_columns e where e.c = a.c)),
+                (select count(*) from expected_kpi_actual_daily_columns e
+                  where not exists (select 1 from actual_kpi_actual_daily_columns a where a.c = e.c))),
+         (select count(*) from expected_kpi_actual_daily_columns) = 9
+           and not exists (
+             select 1 from actual_kpi_actual_daily_columns a
+              where not exists (select 1 from expected_kpi_actual_daily_columns e where e.c = a.c)
+           )
+           and not exists (
+             select 1 from expected_kpi_actual_daily_columns e
+              where not exists (select 1 from actual_kpi_actual_daily_columns a where a.c = e.c)
+           )
+
+  union all
+  select 'unique constraint on kpi_manual_entry over exactly (person_id, kpi_definition_id, date)',
+         'exists, unique, exactly those 3 columns',
+         coalesce(string_agg(
+           format('%s cols(%s)', con.conname,
+                  (select string_agg(a.attname, ',' order by a.attnum)
+                     from pg_attribute a
+                    where a.attrelid = con.conrelid and a.attnum = any(con.conkey))),
+           '; '
+         ), 'missing'),
+         coalesce(bool_or(
+           (select array_agg(a.attname::text order by a.attname)
+              from pg_attribute a
+             where a.attrelid = con.conrelid and a.attnum = any(con.conkey))
+             = array['date', 'kpi_definition_id', 'person_id']
+         ), false)
+    from pg_constraint con
+   where con.conrelid = to_regclass('public.kpi_manual_entry') and con.contype = 'u'
+
+  union all
+  select 'kpi_actual_daily primary key is exactly (person_id, kpi_definition_id, date)',
+         'exists, primary key, exactly those 3 columns',
+         coalesce(
+           format('%s columns: %s',
+                  array_length(con.conkey, 1),
+                  (select string_agg(a.attname, ',' order by a.attnum)
+                     from pg_attribute a
+                    where a.attrelid = con.conrelid and a.attnum = any(con.conkey))),
+           'missing'
+         ),
+         coalesce(
+           (select array_agg(a.attname::text order by a.attname)
+              from pg_attribute a
+             where a.attrelid = con.conrelid and a.attnum = any(con.conkey))
+             = array['date', 'kpi_definition_id', 'person_id'],
+           false
+         )
+    from pg_constraint con
+   where con.conrelid = to_regclass('public.kpi_actual_daily') and con.contype = 'p'
+
+  union all
+  select 'policy kpi_actual_daily_insert_manual with_check mentions manual, kpi_actual_matches_entry, kpi_is_owner_or_manager',
+         'contains all three',
+         coalesce(
+           format('manual=%s matches_entry=%s owner_or_manager=%s',
+                  pol.with_check ilike '%manual%',
+                  pol.with_check ilike '%kpi_actual_matches_entry%',
+                  pol.with_check ilike '%kpi_is_owner_or_manager%'),
+           'missing'
+         ),
+         coalesce(
+           pol.with_check ilike '%manual%'
+           and pol.with_check ilike '%kpi_actual_matches_entry%'
+           and pol.with_check ilike '%kpi_is_owner_or_manager%',
+           false
+         )
+    from pg_policies pol
+   where pol.schemaname = 'public' and pol.policyname = 'kpi_actual_daily_insert_manual'
+
+  union all
+  select 'policy kpi_actual_daily_update_manual qual and with_check mention kpi_is_owner_or_manager',
+         'contains it in both',
+         coalesce(
+           format('qual=%s with_check=%s', pol.qual ilike '%kpi_is_owner_or_manager%',
+                  pol.with_check ilike '%kpi_is_owner_or_manager%'),
+           'missing'
+         ),
+         coalesce(
+           pol.qual ilike '%kpi_is_owner_or_manager%' and pol.with_check ilike '%kpi_is_owner_or_manager%',
+           false
+         )
+    from pg_policies pol
+   where pol.schemaname = 'public' and pol.policyname = 'kpi_actual_daily_update_manual'
+
+  union all
+  select 'manual entries without an identical manual actual',
+         '0',
+         count(*)::text,
+         count(*) = 0
+    from public.kpi_manual_entry m
+   where not exists (
+     select 1 from public.kpi_actual_daily d
+      where d.person_id = m.person_id and d.kpi_definition_id = m.kpi_definition_id and d.date = m.date
+        and d.source = 'manual'
+        and d.kpi_version = m.kpi_version
+        and d.value is not distinct from m.value
+        and d.numerator is not distinct from m.numerator
+        and d.denominator is not distinct from m.denominator
+   )
+
+  union all
+  select 'manual actuals without an identical entry',
+         '0',
+         count(*)::text,
+         count(*) = 0
+    from public.kpi_actual_daily d
+   where d.source = 'manual'
+     and not exists (
+       select 1 from public.kpi_manual_entry m
+        where m.person_id = d.person_id and m.kpi_definition_id = d.kpi_definition_id and m.date = d.date
+          and m.kpi_version = d.kpi_version
+          and m.value is not distinct from d.value
+          and m.numerator is not distinct from d.numerator
+          and m.denominator is not distinct from d.denominator
+     )
+
+  -- Auckland spot checks, read-only on the live project's own time zone data
+  -- (rule 13: verify against the portal, not a document).
+  union all
+  select 'kpi_owner_entry_open(2026-10-05, 2026-10-12T10:59:59Z)',
+         'true',
+         public.kpi_owner_entry_open('2026-10-05', '2026-10-12T10:59:59Z')::text,
+         public.kpi_owner_entry_open('2026-10-05', '2026-10-12T10:59:59Z') = true
+  union all
+  select 'kpi_owner_entry_open(2026-10-05, 2026-10-12T11:00:00Z)',
+         'false',
+         public.kpi_owner_entry_open('2026-10-05', '2026-10-12T11:00:00Z')::text,
+         public.kpi_owner_entry_open('2026-10-05', '2026-10-12T11:00:00Z') = false
+  union all
+  select 'kpi_nz_date(2026-09-26T12:00:00Z)',
+         '2026-09-27',
+         public.kpi_nz_date('2026-09-26T12:00:00Z')::text,
+         public.kpi_nz_date('2026-09-26T12:00:00Z') = '2026-09-27'
+
+  -- The audit gate (D6) assumes no client can set kpi.audit_writer. Reads the
+  -- live project rather than trusting that only this repo's functions exist.
   union all
   select 'no other public function callable by users calls set_config',
          '0',

@@ -10,7 +10,7 @@ import styles from '../../kpis.module.css'
 // lifecycle actions for one scorecard. The page keys this component with the
 // current target and assignment ids, so its state resets after every
 // router.refresh() rather than carrying stale edits forward.
-export default function ScorecardWorkspace({ scorecard, quarterLabel, actions, months, monthLabels, rows, addOptions, hasPublishedKpis }) {
+export default function ScorecardWorkspace({ scorecard, quarterLabel, actions, months, monthLabels, rows, addOptions, hasPublishedKpis, todayNz }) {
   const router = useRouter()
   const [refreshing, startRefresh] = useTransition()
 
@@ -669,7 +669,7 @@ export default function ScorecardWorkspace({ scorecard, quarterLabel, actions, m
               id="board-date"
               type="date"
               required
-              max={new Date().toISOString().slice(0, 10)}
+              max={todayNz}
               className={styles.input}
               value={lifecycleDate}
               onChange={e => setLifecycleDate(e.target.value)}
