@@ -6,7 +6,7 @@ import { formatDayMonth, formatDayMonthYear } from '@/lib/kpi/format'
 import { callApi, describeError } from '@/lib/kpi/clientApi'
 import styles from '../kpis.module.css'
 
-const EMAIL_HELPER = 'Used to link this person to their login later.'
+const EMAIL_HELPER = 'Links this person to the login with the same email.'
 const REASON_PLACEHOLDER = 'Christmas shutdown'
 
 export default function AdminPanels({ teams, people, closures, range }) {

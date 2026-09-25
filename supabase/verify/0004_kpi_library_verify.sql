@@ -1,4 +1,10 @@
 -- 0004_kpi_library_verify.sql
+-- Superseded by 0005_kpi_scorecards_verify.sql once 0005 is applied. After 0005
+-- the rows 'summary', 'policies on kpi_scorecard', 'policies on
+-- kpi_assignment', 'policies on kpi_target', 'policies on kpi_audit_log',
+-- 'policy totals' and 'policy kpi_audit_log_insert_proposal shape' read false
+-- by design. Do not change policies to make them pass.
+--
 -- Read-only check of migration 0004, and the full current-state authority for
 -- 0003's structural checks too (D16). Paste into the Supabase SQL editor and
 -- run. The first row is "summary"; if it shows pass = true and no other row

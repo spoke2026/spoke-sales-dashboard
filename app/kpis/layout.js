@@ -10,7 +10,7 @@ export default function KpisLayout({ children }) {
           <img src="/spoke-logo-white.png" alt="Spoke" className={styles.logoImg} />
           <div className={styles.divider} />
           <span className={styles.appName}>Sales Performance Dashboard</span>
-          <AppNav />
+          <AppNav compact={false} />
         </div>
         <KpiSignOut />
       </header>

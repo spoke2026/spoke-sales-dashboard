@@ -14,7 +14,7 @@ function isActive(pathname, href) {
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-export default function AppNav() {
+export default function AppNav({ compact = true }) {
   const pathname = usePathname()
 
   return (
@@ -23,7 +23,7 @@ export default function AppNav() {
         {LINKS.map(({ href, label }) => {
           const active = isActive(pathname, href)
           return (
-            <li key={href} className={active ? styles.activeItem : undefined}>
+            <li key={href} className={compact && active ? styles.activeItem : undefined}>
               <Link
                 href={href}
                 className={`${styles.link}${active ? ` ${styles.active}` : ''}`}

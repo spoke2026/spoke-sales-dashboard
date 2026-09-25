@@ -7,7 +7,7 @@ export default defineConfig({
     include: ['lib/**/*.test.js'],
     coverage: {
       provider: 'v8',
-      include: ['lib/kpi/calendar.js', 'lib/kpi/status.js', 'lib/kpi/admin.js', 'lib/kpi/library.js'],
+      include: ['lib/kpi/calendar.js', 'lib/kpi/status.js', 'lib/kpi/admin.js', 'lib/kpi/library.js', 'lib/kpi/scorecard.js'],
       thresholds: { branches: 100, lines: 100, functions: 100, statements: 100 },
       reporter: ['text'],
     },

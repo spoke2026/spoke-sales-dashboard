@@ -55,3 +55,13 @@
     display: none;
   }
 }
+
+/* Phase 2b D15: narrows the dashboard's single visible link at 320px so it
+   still fits with the logo and Sign out. On the KPI header, compact is false,
+   so .activeItem never applies and both links keep their normal padding
+   until kpis.module.css's own 400px rule narrows the header shell instead. */
+@media (max-width: 400px) {
+  .link {
+    padding: 0 8px;
+  }
+}

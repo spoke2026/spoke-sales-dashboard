@@ -106,10 +106,13 @@ export default async function KpisPage({ searchParams }) {
       <p className={styles.eyebrow}>KPIs</p>
       <h1 className={styles.pageTitle}>KPI scorecard</h1>
       <p className={styles.lede}>
-        Every KPI will be judged red or green against its target. Scorecards and targets come
-        next. First, set up who is scored and the working-day calendar.
+        Scorecards set each person&apos;s KPIs and monthly targets for the quarter. Red and green
+        status comes next.
       </p>
       <div className={styles.actionsRow}>
+        <Link href="/kpis/scorecards" className={styles.manageLink}>
+          Scorecards
+        </Link>
         <Link href="/kpis/library" className={styles.manageLink}>
           KPI library
         </Link>
