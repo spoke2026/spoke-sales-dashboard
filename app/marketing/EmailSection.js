@@ -1,12 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { callApi } from '@/lib/kpi/clientApi'
 import { campaignsInMonth, emailTotals } from '@/lib/marketing/totals'
 import { formatCount, formatPercent, formatSendDate } from '@/lib/marketing/format'
 import { toCount } from '@/lib/marketing/validate'
-import { Stat, useWriter } from './shared'
+import { Stat, SyncNote, useWriter } from './shared'
 import styles from '@/app/kpis/kpis.module.css'
 import mkt from './marketing.module.css'
 
@@ -20,8 +18,8 @@ export default function EmailSection({ campaigns, month, isAdmin, sync }) {
         <div>
           <h2 id="email-title" className={styles.sectionTitle}>Email</h2>
           <p className={mkt.sectionMeta}>From Mailchimp. Replies and enquiries are typed in.</p>
+          <SyncNote label="Mailchimp" status={sync} />
         </div>
-        <RefreshButton sync={sync} />
       </div>
 
       <div className={styles.statsRow}>
@@ -64,48 +62,6 @@ export default function EmailSection({ campaigns, month, isAdmin, sync }) {
         </div>
       )}
     </section>
-  )
-}
-
-function RefreshButton({ sync }) {
-  const router = useRouter()
-  const [busy, setBusy] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
-
-  async function handleRefresh() {
-    setBusy(true)
-    setMessage('')
-    setError('')
-    const { status, json } = await callApi('/api/marketing/mailchimp-sync', 'POST', {})
-    setBusy(false)
-    if (status === 401) {
-      window.location.assign('/login')
-      return
-    }
-    if (status === 200 && json?.ok) {
-      setMessage(`Updated ${json.campaigns} ${json.campaigns === 1 ? 'campaign' : 'campaigns'} from Mailchimp.`)
-    } else {
-      setError(json?.error || "The sync didn't finish. Try again in a few minutes.")
-    }
-    router.refresh()
-  }
-
-  return (
-    <div className={mkt.refreshBox}>
-      <button type="button" className={styles.btnSecondary} onClick={handleRefresh} disabled={busy}>
-        {busy ? 'Refreshing' : 'Refresh from Mailchimp'}
-      </button>
-      <span className={styles.helper}>
-        {sync.lastUpdated ? `Last updated ${sync.lastUpdated}` : 'Not updated from Mailchimp yet'}
-      </span>
-      <span className={mkt.syncStatus} role="status">{message}</span>
-      {(error || sync.lastError) && (
-        <span className={styles.fieldError} role="alert">
-          {error || `The last sync failed: ${sync.lastError}`}
-        </span>
-      )}
-    </div>
   )
 }
 

@@ -6,14 +6,15 @@ import { weeksInMonth, webTotals } from '@/lib/marketing/totals'
 import { formatCount, formatDate } from '@/lib/marketing/format'
 import { formatPairs, parsePairs } from '@/lib/marketing/validate'
 import { todayInAuckland } from '@/lib/kpi/calendar'
-import { DeleteButton, Field, FormActions, Stat, useWriter } from './shared'
+import { DeleteButton, Field, FormActions, Stat, SyncNote, useWriter } from './shared'
 import styles from '@/app/kpis/kpis.module.css'
 import mkt from './marketing.module.css'
 
-export default function WebsiteSection({ weeks, month, isAdmin }) {
+export default function WebsiteSection({ weeks, month, isAdmin, sync }) {
   const [form, setForm] = useState(null) // null | { week? }
   const rows = weeksInMonth(weeks, month)
   const totals = webTotals(rows)
+  const thisWeek = mondayOf(todayInAuckland())
 
   return (
     <section className={styles.card} aria-labelledby="website-title">
@@ -21,15 +22,22 @@ export default function WebsiteSection({ weeks, month, isAdmin }) {
         <div>
           <h2 id="website-title" className={styles.sectionTitle}>Website</h2>
           <p className={mkt.sectionMeta}>
-            From Vercel Web Analytics, typed in each week for now. A week counts in the month its Monday falls in.
+            From Vercel Web Analytics, updated automatically. This week is a running total until Sunday. A week
+            counts in the month its Monday falls in.
           </p>
+          <SyncNote label="Vercel" status={sync} />
         </div>
         {isAdmin && form === null && (
           <button type="button" className={styles.btnSecondary} onClick={() => setForm({})}>
-            Add week
+            Add a week by hand
           </button>
         )}
       </div>
+      {isAdmin && form !== null && (
+        <p className={styles.helper}>
+          Vercel replaces this week and last week each time it updates, so only type in weeks it doesn&apos;t have.
+        </p>
+      )}
 
       <div className={styles.statsRow}>
         <Stat value={formatCount(totals.visitors)} label="Visitors" />
@@ -46,7 +54,7 @@ export default function WebsiteSection({ weeks, month, isAdmin }) {
       {form !== null && <WeekForm week={form.week} onDone={() => setForm(null)} />}
 
       {rows.length === 0 ? (
-        <p className={styles.emptyState}>No website weeks logged for this period.</p>
+        <p className={styles.emptyState}>No website numbers for this period yet.</p>
       ) : (
         <div className={`${styles.tableWrap} ${mkt.tableScroll}`} role="region" tabIndex={0} aria-label="Website weeks table">
           <table className={styles.table}>
@@ -64,7 +72,11 @@ export default function WebsiteSection({ weeks, month, isAdmin }) {
             <tbody>
               {rows.map(w => (
                 <tr key={w.id} className={mkt.topAlign}>
-                  <td>{formatDate(w.week_start)}</td>
+                  <td>
+                    {formatDate(w.week_start)}
+                    {w.week_start === thisWeek && <span className={mkt.rowNote}>So far</span>}
+                    {w.source === 'manual' && <span className={mkt.rowNote}>Typed in</span>}
+                  </td>
                   <td className={styles.numCell}>{formatCount(w.visitors)}</td>
                   <td className={styles.numCell}>{formatCount(w.page_views)}</td>
                   <td><PairList items={w.top_pages} keyName="path" numName="views" /></td>

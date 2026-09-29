@@ -11,6 +11,27 @@ export const metadata = { title: 'Marketing | Spoke Sales Dashboard' }
 
 const ACCOUNT_FILTERS = ['both', 'spoke', 'ed']
 
+// The latest finished attempt and the latest successful one for a source.
+function syncStatus(supabase, source) {
+  const base = () => supabase
+    .from('mkt_sync_log')
+    .select('finished_at, ok, error')
+    .eq('source', source)
+    .not('finished_at', 'is', null)
+    .order('finished_at', { ascending: false })
+    .limit(1)
+  return Promise.all([base(), base().eq('ok', true)])
+}
+
+function describeSync([latestRes, okRes]) {
+  const latest = latestRes.data?.[0]
+  const lastOk = okRes.data?.[0]
+  return {
+    lastUpdated: lastOk ? formatDateTime(lastOk.finished_at) : null,
+    lastError: latest && !latest.ok ? latest.error : null,
+  }
+}
+
 export default async function MarketingPage({ searchParams }) {
   const supabase = await createClient()
 
@@ -26,7 +47,7 @@ export default async function MarketingPage({ searchParams }) {
   const month = parseMonthParam(searchParams?.month, months)
   const account = ACCOUNT_FILTERS.includes(searchParams?.account) ? searchParams.account : 'both'
 
-  const [campaignRes, postRes, followerRes, weekRes, syncRes] = await Promise.all([
+  const [campaignRes, postRes, followerRes, weekRes, mailchimpSync, vercelSync] = await Promise.all([
     supabase
       .from('mkt_email_campaign')
       .select('id, send_time, campaign_name, subject_line, recipients, unique_opens, open_rate, unique_clicks, click_rate, click_to_open, replies, enquiries')
@@ -45,16 +66,11 @@ export default async function MarketingPage({ searchParams }) {
       .from('mkt_web_week')
       .select('id, week_start, visitors, page_views, top_pages, top_referrers, source')
       .order('week_start', { ascending: false }),
-    supabase
-      .from('mkt_sync_log')
-      .select('finished_at, ok, error')
-      .eq('source', 'mailchimp')
-      .not('finished_at', 'is', null)
-      .order('finished_at', { ascending: false })
-      .limit(20),
+    syncStatus(supabase, 'mailchimp'),
+    syncStatus(supabase, 'vercel'),
   ])
 
-  const failed = [campaignRes, postRes, followerRes, weekRes, syncRes].filter(r => r.error)
+  const failed = [campaignRes, postRes, followerRes, weekRes, ...mailchimpSync, ...vercelSync].filter(r => r.error)
   if (failed.length > 0) {
     console.error('Marketing page query error', ...failed.map(r => r.error))
     return (
@@ -68,12 +84,9 @@ export default async function MarketingPage({ searchParams }) {
     )
   }
 
-  const syncRows = syncRes.data ?? []
-  const lastOk = syncRows.find(r => r.ok)
-  const latest = syncRows[0]
   const sync = {
-    lastUpdated: lastOk ? formatDateTime(lastOk.finished_at) : null,
-    lastError: latest && !latest.ok ? latest.error : null,
+    mailchimp: describeSync(mailchimpSync),
+    vercel: describeSync(vercelSync),
   }
 
   return (

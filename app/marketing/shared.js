@@ -124,3 +124,17 @@ export function FormActions({ busy, onCancel, saveLabel = 'Save' }) {
     </div>
   )
 }
+
+// "Last updated" line for one sync source, with its last error if it failed.
+export function SyncNote({ label, status }) {
+  return (
+    <p className={mkt.sectionMeta}>
+      {status.lastUpdated ? `Last updated from ${label} ${status.lastUpdated}.` : `Not updated from ${label} yet.`}
+      {status.lastError && (
+        <span className={`${styles.fieldError} ${mkt.syncError}`} role="alert">
+          The last {label} update failed: {status.lastError}
+        </span>
+      )}
+    </p>
+  )
+}
