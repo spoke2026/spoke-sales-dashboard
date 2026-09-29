@@ -1,0 +1,154 @@
+/*
+ * Marketing tab additions. Everything else comes from kpis.module.css so the
+ * tab shares the KPI pages' Spoke v1.1 look: Stone workspace, White cards,
+ * Mineral structure, Zest only for primary action.
+ */
+
+/* The email table has eleven columns, so this page gets a wider column. */
+.main {
+  max-width: 1280px;
+}
+
+.cardHeaderWrap {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.sectionMeta {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--mineral-80);
+}
+
+.statValue {
+  font-size: 1.75rem;
+}
+
+.statNote {
+  font-size: 13px;
+  font-family: var(--font-mono);
+  color: var(--mineral-80);
+}
+
+.refreshBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  max-width: 360px;
+  text-align: right;
+}
+
+.syncStatus,
+.rowStatus {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--good);
+}
+
+.syncStatus:empty,
+.rowStatus:empty { display: none; }
+
+.rowStatus { margin-left: 8px; }
+
+.subHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 32px 0 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--mineral-18);
+}
+
+.subTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--mineral-deep);
+}
+
+.wrapCell {
+  white-space: normal !important;
+  min-width: 180px;
+  max-width: 320px;
+}
+
+.smallInput {
+  width: 72px;
+}
+
+.rowActions {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.inlineConfirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.dangerBtn {
+  color: var(--bad);
+}
+
+.textLink {
+  color: var(--mineral-deep);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  outline: none;
+}
+
+.textLink:focus-visible {
+  outline: 3px solid var(--mineral);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--zest);
+}
+
+.topAlign td {
+  vertical-align: top;
+}
+
+.pairList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.formGrid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.spanAll {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .refreshBox {
+    align-items: flex-start;
+    text-align: left;
+  }
+  .statValue {
+    font-size: 1.5rem;
+  }
+}
+
+/* The tables' visually hidden labels are absolutely positioned; a positioned
+   wrap keeps them inside its horizontal scroll so they never widen the page. */
+.tableScroll {
+  position: relative;
+}
+
+/* Number headings line up with the right-aligned numbers below them. */
+.tableScroll th.numHead {
+  text-align: right;
+}

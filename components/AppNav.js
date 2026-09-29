@@ -7,6 +7,7 @@ import styles from './AppNav.module.css'
 const LINKS = [
   { href: '/', label: 'Sales' },
   { href: '/kpis', label: 'KPIs' },
+  { href: '/marketing', label: 'Marketing' },
 ]
 
 function isActive(pathname, href) {

@@ -750,6 +750,10 @@
   .brandRow {
     gap: 8px;
   }
+  /* Three section links plus Sign out fit at 320px with a slightly smaller logo. */
+  .logoImg {
+    width: 72px;
+  }
 }
 
 /* ── WINDOW SELECTOR (Phase 3a) ─────────────────────────────────────────── */
