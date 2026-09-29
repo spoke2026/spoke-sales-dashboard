@@ -1,35 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { campaignsInMonth, emailTotals } from '@/lib/marketing/totals'
+import { campaignsInMonth } from '@/lib/marketing/totals'
 import { formatCount, formatPercent, formatSendDate } from '@/lib/marketing/format'
 import { toCount } from '@/lib/marketing/validate'
-import { Stat, SyncNote, useWriter } from './shared'
+import { Panel, SyncNote, useWriter } from './shared'
 import styles from '@/app/kpis/kpis.module.css'
 import mkt from './marketing.module.css'
 
 export default function EmailSection({ campaigns, month, isAdmin, sync }) {
   const rows = campaignsInMonth(campaigns, month)
-  const totals = emailTotals(rows)
 
   return (
-    <section className={styles.card} aria-labelledby="email-title">
-      <div className={`${styles.cardHeader} ${mkt.cardHeaderWrap}`}>
-        <div>
-          <h2 id="email-title" className={styles.sectionTitle}>Email</h2>
-          <p className={mkt.sectionMeta}>From Mailchimp. Replies and enquiries are typed in.</p>
-          <SyncNote label="Mailchimp" status={sync} />
-        </div>
-      </div>
-
-      <div className={styles.statsRow}>
-        <Stat value={formatCount(totals.campaigns)} label="Campaigns sent" />
-        <Stat value={formatPercent(totals.avgOpenRate)} label="Average open rate" />
-        <Stat value={formatPercent(totals.avgClickRate)} label="Average click rate" />
-        <Stat value={formatPercent(totals.avgClickToOpen)} label="Average click-to-open" />
-        <Stat value={formatCount(totals.replies)} label="Replies" />
-        <Stat value={formatCount(totals.enquiries)} label="Enquiries" />
-      </div>
+    <Panel
+      title="Email campaigns"
+      count={`${rows.length} ${rows.length === 1 ? 'campaign' : 'campaigns'}`}
+      hint={isAdmin ? 'Type in replies and enquiries here' : null}
+    >
+      <p className={mkt.sectionMeta}>From Mailchimp. Replies and enquiries are typed in.</p>
+      <SyncNote label="Mailchimp" status={sync} />
 
       {rows.length === 0 ? (
         <p className={styles.emptyState}>No campaigns sent in this period.</p>
@@ -61,7 +50,7 @@ export default function EmailSection({ campaigns, month, isAdmin, sync }) {
           </table>
         </div>
       )}
-    </section>
+    </Panel>
   )
 }
 

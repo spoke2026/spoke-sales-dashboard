@@ -2,67 +2,30 @@
 
 import { useState } from 'react'
 import { ALL_MONTHS, monthOfDate, shortMonthLabel } from '@/lib/marketing/months'
-import {
-  ACCOUNTS,
-  ACCOUNT_LABELS,
-  followerRowsWithChange,
-  linkedinTotals,
-  postsInView,
-} from '@/lib/marketing/totals'
-import { formatChange, formatCount, formatDate, formatDecimal } from '@/lib/marketing/format'
+import { ACCOUNT_LABELS, followerRowsWithChange, postsInView } from '@/lib/marketing/totals'
+import { formatChange, formatCount, formatDate } from '@/lib/marketing/format'
 import { todayInAuckland } from '@/lib/kpi/calendar'
-import { ChipFilter, DeleteButton, Field, FormActions, Stat, useWriter } from './shared'
+import { DeleteButton, Field, FormActions, Panel, useWriter } from './shared'
 import styles from '@/app/kpis/kpis.module.css'
 import mkt from './marketing.module.css'
 
-const ACCOUNT_CHOICES = [
-  { value: 'both', label: 'Both' },
-  { value: 'spoke', label: 'Spoke page only' },
-  { value: 'ed', label: 'Ed only' },
-]
-
-export default function LinkedInSection({ posts, followers, month, months, account, query, isAdmin }) {
+export default function LinkedInSection({ posts, followers, month, months, account, isAdmin }) {
   const [form, setForm] = useState(null) // null | { kind: 'post', post? } | { kind: 'followers' }
 
   const shownPosts = postsInView(posts, month, account)
   const followerRows = followerRowsWithChange(followers)
-  const totals = linkedinTotals(shownPosts, followerRows, month, account)
   const shownFollowers = followerRows.filter(
     r => (account === 'both' || r.account === account) &&
       (month === ALL_MONTHS || monthOfDate(r.month) === month)
   )
 
   return (
-    <section className={styles.card} aria-labelledby="linkedin-title">
-      <div className={`${styles.cardHeader} ${mkt.cardHeaderWrap}`}>
-        <div>
-          <h2 id="linkedin-title" className={styles.sectionTitle}>LinkedIn</h2>
-          <p className={mkt.sectionMeta}>Typed in by hand.</p>
-        </div>
-        <ChipFilter label="LinkedIn account" param="account" value={account} options={ACCOUNT_CHOICES} query={query} />
-      </div>
-
-      <div className={styles.statsRow}>
-        <Stat
-          value={formatCount(totals.posts)}
-          label="Posts"
-          note={account === 'both' ? `Spoke ${totals.postsByAccount.spoke}, Ed ${totals.postsByAccount.ed}` : null}
-        />
-        <Stat value={formatCount(totals.likes)} label="Likes" />
-        <Stat value={formatCount(totals.comments)} label="Comments" />
-        <Stat value={formatDecimal(totals.avgLikes)} label="Average likes per post" />
-        {ACCOUNTS.filter(a => totals.followers[a] !== undefined).map(a => {
-          const f = totals.followers[a]
-          return (
-            <Stat
-              key={a}
-              value={f ? formatCount(f.followers) : 'None yet'}
-              label={`${ACCOUNT_LABELS[a]} followers`}
-              note={f ? `${formatChange(f.change)}, ${shortMonthLabel(monthOfDate(f.month))}` : null}
-            />
-          )
-        })}
-      </div>
+    <Panel
+      title="LinkedIn posts and followers"
+      count={`${shownPosts.length} ${shownPosts.length === 1 ? 'post' : 'posts'}`}
+      hint={isAdmin ? 'Add posts and log followers here' : null}
+    >
+      <p className={mkt.sectionMeta}>Typed in by hand. The account filter above applies here too.</p>
 
       {/* ── Posts ── */}
       <div className={mkt.subHeader}>
@@ -183,7 +146,7 @@ export default function LinkedInSection({ posts, followers, month, months, accou
           To correct a count, log it again for the same month and account. It replaces the old one.
         </p>
       )}
-    </section>
+    </Panel>
   )
 }
 

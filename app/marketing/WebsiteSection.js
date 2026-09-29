@@ -2,54 +2,42 @@
 
 import { useState } from 'react'
 import { mondayOf } from '@/lib/marketing/months'
-import { weeksInMonth, webTotals } from '@/lib/marketing/totals'
+import { weeksInMonth } from '@/lib/marketing/totals'
 import { formatCount, formatDate } from '@/lib/marketing/format'
 import { formatPairs, parsePairs } from '@/lib/marketing/validate'
 import { todayInAuckland } from '@/lib/kpi/calendar'
-import { DeleteButton, Field, FormActions, Stat, SyncNote, useWriter } from './shared'
+import { DeleteButton, Field, FormActions, Panel, SyncNote, useWriter } from './shared'
 import styles from '@/app/kpis/kpis.module.css'
 import mkt from './marketing.module.css'
 
 export default function WebsiteSection({ weeks, month, isAdmin, sync }) {
   const [form, setForm] = useState(null) // null | { week? }
   const rows = weeksInMonth(weeks, month)
-  const totals = webTotals(rows)
   const thisWeek = mondayOf(todayInAuckland())
 
   return (
-    <section className={styles.card} aria-labelledby="website-title">
-      <div className={`${styles.cardHeader} ${mkt.cardHeaderWrap}`}>
-        <div>
-          <h2 id="website-title" className={styles.sectionTitle}>Website</h2>
-          <p className={mkt.sectionMeta}>
-            From Vercel Web Analytics, updated automatically. This week is a running total until Sunday. A week
-            counts in the month its Monday falls in.
-          </p>
-          <SyncNote label="Vercel" status={sync} />
-        </div>
-        {isAdmin && form === null && (
+    <Panel
+      title="Website weeks"
+      count={`${rows.length} ${rows.length === 1 ? 'week' : 'weeks'}`}
+      hint="Top pages and referrers for each week"
+    >
+      <p className={mkt.sectionMeta}>
+        From Vercel Web Analytics, updated automatically. This week is a running total until Sunday. A week
+        counts in the month its Monday falls in.
+      </p>
+      <SyncNote label="Vercel" status={sync} />
+      {isAdmin && form === null && (
+        <div className={mkt.panelActions}>
           <button type="button" className={styles.btnSecondary} onClick={() => setForm({})}>
             Add a week by hand
           </button>
-        )}
-      </div>
+        </div>
+      )}
       {isAdmin && form !== null && (
         <p className={styles.helper}>
           Vercel replaces this week and last week each time it updates, so only type in weeks it doesn&apos;t have.
         </p>
       )}
-
-      <div className={styles.statsRow}>
-        <Stat value={formatCount(totals.visitors)} label="Visitors" />
-        <Stat value={formatCount(totals.pageViews)} label="Page views" />
-        <Stat value={formatCount(totals.fromLinkedIn)} label="Visitors from LinkedIn" />
-        <Stat value={formatCount(totals.fromMailchimp)} label="Visitors from Mailchimp" />
-        <Stat
-          value={totals.topPage ? totals.topPage.path : 'None yet'}
-          label="Top page"
-          note={totals.topPage ? `${formatCount(totals.topPage.views)} views` : null}
-        />
-      </div>
 
       {form !== null && <WeekForm week={form.week} onDone={() => setForm(null)} />}
 
@@ -97,7 +85,7 @@ export default function WebsiteSection({ weeks, month, isAdmin, sync }) {
           </table>
         </div>
       )}
-    </section>
+    </Panel>
   )
 }
 

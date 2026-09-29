@@ -91,12 +91,8 @@ export default async function MarketingPage({ searchParams }) {
 
   return (
     <main className={`${styles.main} ${mkt.main}`}>
-      <p className={styles.eyebrow}>Marketing</p>
-      <h1 className={styles.pageTitle}>Marketing</h1>
-      <p className={styles.lede}>
-        Email, LinkedIn and website results by month.
-        {isAdmin ? '' : ' Only the admin can change these numbers.'}
-      </p>
+      {/* Dashboard layout like Sales: the cards lead, the heading is for screen readers. */}
+      <h1 className={styles.visuallyHidden}>Marketing</h1>
       <MarketingView
         months={months}
         month={month}

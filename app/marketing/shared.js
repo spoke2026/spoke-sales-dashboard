@@ -138,3 +138,18 @@ export function SyncNote({ label, status }) {
     </p>
   )
 }
+
+// A fold-away detail panel under the dashboard cards. Closed by default so the
+// dashboard stays the first thing people see.
+export function Panel({ title, count, hint, children }) {
+  return (
+    <details className={`${styles.card} ${mkt.panel}`}>
+      <summary className={mkt.panelSummary}>
+        <h2 className={`${styles.sectionTitle} ${mkt.panelTitle}`}>{title}</h2>
+        {count !== undefined && <span className={mkt.panelCount}>{count}</span>}
+        {hint && <span className={mkt.panelHint}>{hint}</span>}
+      </summary>
+      <div className={mkt.panelBody}>{children}</div>
+    </details>
+  )
+}
