@@ -101,8 +101,8 @@ export default function LinkedInSection({ posts, followers, month, months, accou
                   <td>{formatDate(p.posted_on)}</td>
                   <td>{ACCOUNT_LABELS[p.account]}</td>
                   <td className={mkt.wrapCell}>{p.topic}</td>
-                  <td className={styles.numCell}>{formatCount(p.likes)}</td>
-                  <td className={styles.numCell}>{formatCount(p.comments)}</td>
+                  <td className={`${styles.numCell} ${mkt.numHead}`}>{formatCount(p.likes)}</td>
+                  <td className={`${styles.numCell} ${mkt.numHead}`}>{formatCount(p.comments)}</td>
                   <td>
                     {p.url ? (
                       <a href={p.url} target="_blank" rel="noopener noreferrer" className={mkt.textLink}>
@@ -161,8 +161,8 @@ export default function LinkedInSection({ posts, followers, month, months, accou
                 <tr key={r.id}>
                   <td>{shortMonthLabel(monthOfDate(r.month))}</td>
                   <td>{ACCOUNT_LABELS[r.account]}</td>
-                  <td className={styles.numCell}>{formatCount(r.followers)}</td>
-                  <td className={styles.numCell}>{formatChange(r.change)}</td>
+                  <td className={`${styles.numCell} ${mkt.numHead}`}>{formatCount(r.followers)}</td>
+                  <td className={`${styles.numCell} ${mkt.numHead}`}>{formatChange(r.change)}</td>
                   {isAdmin && (
                     <td>
                       <DeleteRow

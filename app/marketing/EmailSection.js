@@ -96,15 +96,15 @@ function CampaignRow({ campaign: c, isAdmin }) {
       <td>{formatSendDate(c.send_time)}</td>
       <td className={mkt.wrapCell}>{c.campaign_name}</td>
       <td className={mkt.wrapCell}>{c.subject_line}</td>
-      <td className={styles.numCell}>{formatCount(c.recipients)}</td>
-      <td className={styles.numCell}>{formatCount(c.unique_opens)}</td>
-      <td className={styles.numCell}>{formatPercent(c.open_rate)}</td>
-      <td className={styles.numCell}>{formatCount(c.unique_clicks)}</td>
-      <td className={styles.numCell}>{formatPercent(c.click_rate)}</td>
-      <td className={styles.numCell}>{formatPercent(c.click_to_open)}</td>
+      <td className={`${styles.numCell} ${mkt.numHead}`}>{formatCount(c.recipients)}</td>
+      <td className={`${styles.numCell} ${mkt.numHead}`}>{formatCount(c.unique_opens)}</td>
+      <td className={`${styles.numCell} ${mkt.numHead}`}>{formatPercent(c.open_rate)}</td>
+      <td className={`${styles.numCell} ${mkt.numHead}`}>{formatCount(c.unique_clicks)}</td>
+      <td className={`${styles.numCell} ${mkt.numHead}`}>{formatPercent(c.click_rate)}</td>
+      <td className={`${styles.numCell} ${mkt.numHead}`}>{formatPercent(c.click_to_open)}</td>
       {isAdmin ? (
         <>
-          <td className={styles.numCell}>
+          <td className={`${styles.numCell} ${mkt.numHead}`}>
             <label htmlFor={repliesId} className={styles.visuallyHidden}>Replies to {c.campaign_name}</label>
             <input
               id={repliesId}
@@ -114,7 +114,7 @@ function CampaignRow({ campaign: c, isAdmin }) {
               onChange={e => setReplies(e.target.value)}
             />
           </td>
-          <td className={styles.numCell}>
+          <td className={`${styles.numCell} ${mkt.numHead}`}>
             <label htmlFor={enquiriesId} className={styles.visuallyHidden}>Enquiries from {c.campaign_name}</label>
             <input
               id={enquiriesId}
@@ -134,8 +134,8 @@ function CampaignRow({ campaign: c, isAdmin }) {
         </>
       ) : (
         <>
-          <td className={styles.numCell}>{formatCount(c.replies)}</td>
-          <td className={styles.numCell}>{formatCount(c.enquiries)}</td>
+          <td className={`${styles.numCell} ${mkt.numHead}`}>{formatCount(c.replies)}</td>
+          <td className={`${styles.numCell} ${mkt.numHead}`}>{formatCount(c.enquiries)}</td>
         </>
       )}
     </tr>

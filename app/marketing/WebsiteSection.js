@@ -77,8 +77,8 @@ export default function WebsiteSection({ weeks, month, isAdmin, sync }) {
                     {w.week_start === thisWeek && <span className={mkt.rowNote}>So far</span>}
                     {w.source === 'manual' && <span className={mkt.rowNote}>Typed in</span>}
                   </td>
-                  <td className={styles.numCell}>{formatCount(w.visitors)}</td>
-                  <td className={styles.numCell}>{formatCount(w.page_views)}</td>
+                  <td className={`${styles.numCell} ${mkt.numHead}`}>{formatCount(w.visitors)}</td>
+                  <td className={`${styles.numCell} ${mkt.numHead}`}>{formatCount(w.page_views)}</td>
                   <td><PairList items={w.top_pages} keyName="path" numName="views" /></td>
                   <td><PairList items={w.top_referrers} keyName="site" numName="visitors" /></td>
                   {isAdmin && (

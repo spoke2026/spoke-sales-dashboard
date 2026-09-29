@@ -136,8 +136,8 @@
   position: relative;
 }
 
-/* Number headings line up with the right-aligned numbers below them. */
-.tableScroll th.numHead {
+/* Number columns: headings and figures both sit on the right. */
+.tableScroll .numHead {
   text-align: right;
 }
 
