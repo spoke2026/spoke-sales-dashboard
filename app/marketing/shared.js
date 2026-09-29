@@ -7,16 +7,6 @@ import { callApi, describeError } from '@/lib/kpi/clientApi'
 import styles from '@/app/kpis/kpis.module.css'
 import mkt from './marketing.module.css'
 
-export function Stat({ value, label, note }) {
-  return (
-    <div className={styles.stat}>
-      <span className={`${styles.statValue} ${mkt.statValue}`}>{value}</span>
-      <span className={styles.statLabel}>{label}</span>
-      {note && <span className={mkt.statNote}>{note}</span>}
-    </div>
-  )
-}
-
 // Link chips that set one query param and keep the others.
 export function ChipFilter({ label, param, value, options, query }) {
   return (

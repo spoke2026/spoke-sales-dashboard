@@ -10,39 +10,20 @@
   padding: 24px 24px 48px;
 }
 
-.cardHeaderWrap {
-  flex-wrap: wrap;
-  align-items: flex-start;
-}
-
 .sectionMeta {
   margin: 6px 0 0;
   font-size: 13px;
   color: var(--mineral-80);
 }
 
-.statValue {
-  font-size: 1.75rem;
-}
-
-.statNote {
-  font-size: 13px;
-  font-family: var(--font-mono);
-  color: var(--mineral-80);
-}
-
-
-.syncStatus,
 .rowStatus {
   font-size: 13px;
   font-weight: 650;
   color: var(--good);
+  margin-left: 8px;
 }
 
-.syncStatus:empty,
 .rowStatus:empty { display: none; }
-
-.rowStatus { margin-left: 8px; }
 
 .subHeader {
   display: flex;
@@ -125,12 +106,6 @@
   grid-column: 1 / -1;
 }
 
-@media (max-width: 768px) {
-  .statValue {
-    font-size: 1.5rem;
-  }
-}
-
 /* The tables' visually hidden labels are absolutely positioned; a positioned
    wrap keeps them inside its horizontal scroll so they never widen the page. */
 .tableScroll {
@@ -146,8 +121,6 @@
   display: block;
   margin-top: 4px;
 }
-
-
 
 .rowNote {
   display: block;
