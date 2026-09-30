@@ -177,3 +177,46 @@ To make these editable by admins without a code deploy, connect Supabase:
 **CORS errors:** These shouldn't occur on Vercel since all HubSpot calls are server-side. If you see them, ensure you are calling `/api/dashboard` not HubSpot directly.
 
 **DNS not resolving:** Allow 24-48 hours for DNS propagation. Use `dig dashboard.spoke.nz` to check.
+
+---
+
+## Marketing tab (`/marketing`)
+
+Email, LinkedIn and website results by month, from September 2026. Same login
+as the rest of the dashboard: everyone signed in can view it, only the admin
+(`public.is_admin()`) can change the numbers.
+
+- **Email:** Mailchimp campaign reports (`/3.0/reports`, sent since 1 Sep 2026).
+  Replies and enquiries are typed in; the sync never writes those two columns
+  (enforced by column grants in `0007_marketing.sql`).
+- **LinkedIn:** posts and monthly follower counts, typed in.
+- **Website:** one row per week (Monday start) from Vercel Web Analytics
+  (`/v1/query/web-analytics/visits/aggregate`) for the `spoke-website`
+  project, filled automatically (`source = 'vercel_api'`). This week is a
+  running total. Older weeks can still be typed in (`source = 'manual'`).
+
+Data lives in Supabase in the `mkt_` tables. Apply
+`supabase/migrations/0007_marketing.sql` once in the Supabase SQL editor
+(rollback: `supabase/rollback/0007_marketing_rollback.sql`).
+
+### Syncing Mailchimp and Vercel (`/api/marketing/sync`)
+
+- **Automatically while the tab is open:** on opening and every 15 minutes.
+  The server skips a source tried in the last 15 minutes, so many open tabs
+  can't hammer either API.
+- **"Refresh now"** on the tab runs both straight away.
+- **Every Monday at 8am NZ time** via Vercel Cron (`vercel.json`), so last week
+  is saved even if nobody opens the tab. Vercel Hobby keeps analytics for one
+  month, so this copy is the long-term history. Cron is UTC, so both 19:00 and
+  20:00 UTC Sunday are scheduled and only the one that is 8am in Auckland
+  runs, whatever the daylight saving.
+- Each run updates last week and this week from Vercel, replacing any typed
+  numbers for those weeks.
+- Needs these environment variables in Vercel (Production and Preview):
+
+| Name | Value |
+|------|-------|
+| `MAILCHIMP_API_KEY` | Mailchimp API key (ends in `-usNN`) |
+| `VERCEL_ANALYTICS_TOKEN` | Vercel access token with access to `spoke-website` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server only) |
+| `CRON_SECRET` | Any long random string |

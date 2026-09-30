@@ -1,0 +1,336 @@
+/*
+ * Marketing tab additions. Everything else comes from kpis.module.css so the
+ * tab shares the KPI pages' Spoke v1.1 look: Stone workspace, White cards,
+ * Mineral structure, Zest only for primary action.
+ */
+
+/* Dashboard width, like the Sales tab. */
+.main {
+  max-width: 1600px;
+  padding: 24px 24px 48px;
+}
+
+.sectionMeta {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--mineral-80);
+}
+
+.rowStatus {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--good);
+  margin-left: 8px;
+}
+
+.rowStatus:empty { display: none; }
+
+.subHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 32px 0 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--mineral-18);
+}
+
+.subTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--mineral-deep);
+}
+
+.wrapCell {
+  white-space: normal !important;
+  min-width: 180px;
+  max-width: 320px;
+}
+
+.smallInput {
+  width: 72px;
+}
+
+.rowActions {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.inlineConfirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.dangerBtn {
+  color: var(--bad);
+}
+
+.textLink {
+  color: var(--mineral-deep);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  outline: none;
+}
+
+.textLink:focus-visible {
+  outline: 3px solid var(--mineral);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--zest);
+}
+
+.topAlign td {
+  vertical-align: top;
+}
+
+.pairList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.formGrid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.spanAll {
+  grid-column: 1 / -1;
+}
+
+/* The tables' visually hidden labels are absolutely positioned; a positioned
+   wrap keeps them inside its horizontal scroll so they never widen the page. */
+.tableScroll {
+  position: relative;
+}
+
+/* Number columns: headings and figures both sit on the right. */
+.tableScroll .numHead {
+  text-align: right;
+}
+
+.syncError {
+  display: block;
+  margin-top: 4px;
+}
+
+.rowNote {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--mineral-80);
+}
+
+/* ── DASHBOARD (reuses app/dashboard.module.css cards and charts) ──────────
+   The Sales page sizes its cards from a 100vh grid; this page scrolls, so the
+   card heights are set here instead. */
+.topCard {
+  height: 380px;
+}
+
+.accountRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 16px 0 12px;
+}
+
+.accountLabel {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--mineral-80);
+}
+
+.cardGrid {
+  margin-bottom: 24px;
+}
+
+.metricCard {
+  height: 340px;
+}
+
+.smallChart {
+  min-height: 120px;
+}
+
+.chartEmpty {
+  margin: 0;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 12px;
+  font-size: 13px;
+  color: var(--mineral-80);
+}
+
+.sidePath {
+  font-size: 22px !important;
+  overflow-wrap: anywhere;
+}
+
+.keyMineral,
+.keyZest {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 4px;
+  vertical-align: baseline;
+}
+
+.keyMineral { background: var(--mineral); }
+.keyZest { background: var(--zest); }
+
+.followerRows {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.followerRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.followerNumber {
+  font-size: 30px !important;
+}
+
+.cardFoot {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--mineral-80);
+}
+
+@media (max-width: 1100px) and (min-width: 769px) {
+  .cardGrid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+@media (max-width: 768px) {
+  .topCard { height: auto; }
+  .metricCard { height: auto; }
+}
+
+/* ── HEADER CONTROLS ───────────────────────────────────────────────────── */
+.headerControls {
+  flex-wrap: nowrap;
+}
+
+.dotBad { background: var(--bad) !important; }
+
+@media (max-width: 1200px) {
+  .headerSync { display: none !important; }
+}
+
+@media (max-width: 900px) {
+  .headerOnly { display: none !important; }
+}
+
+.mobileBar {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mobileBar select { flex: 1; }
+
+@media (max-width: 900px) {
+  .mobileBar { display: flex; }
+}
+
+.syncAlert {
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+/* ── FOLD-AWAY PANELS ──────────────────────────────────────────────────── */
+.panels {
+  display: grid;
+  gap: 12px;
+}
+
+.panels .panel {
+  padding: 0;
+  margin-bottom: 0;
+}
+
+.panelSummary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  padding: 18px 24px;
+  min-height: 60px;
+  cursor: pointer;
+  list-style: none;
+  outline: none;
+}
+
+.panelSummary::-webkit-details-marker { display: none; }
+
+.panelSummary::before {
+  content: "+";
+  width: 20px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--mineral);
+}
+
+.panel[open] > .panelSummary::before { content: "−"; }
+
+.panelSummary:hover { background: var(--mineral-10); }
+
+.panelSummary:focus-visible {
+  outline: 3px solid var(--mineral);
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 6px var(--zest);
+}
+
+.panelTitle {
+  font-size: 1.05rem !important;
+}
+
+.panelCount {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--mineral-80);
+}
+
+.panelHint {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--mineral-80);
+}
+
+.panelBody {
+  padding: 0 24px 24px;
+}
+
+.panelActions {
+  margin: 12px 0 16px;
+}
+
+.footer {
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .panelSummary { padding: 16px; }
+  .panelBody { padding: 0 16px 16px; }
+  .panelHint { margin-left: 0; width: 100%; }
+  .main { padding: 20px 16px 40px; }
+}
