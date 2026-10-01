@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { monthOptions, parseMonthParam } from '@/lib/marketing/months'
 import { formatDateTime } from '@/lib/marketing/format'
+import { canEditMarketing } from '@/lib/marketing/permissions'
 import MarketingView from './MarketingView'
 import styles from '@/app/kpis/kpis.module.css'
 import mkt from './marketing.module.css'
@@ -40,8 +41,8 @@ export default async function MarketingPage({ searchParams }) {
     redirect('/login')
   }
 
-  const { data: isAdminData, error: adminError } = await supabase.rpc('is_admin')
-  const isAdmin = !adminError && isAdminData === true
+  // Ed and the marketing editors (public.mkt_editor) see the edit controls.
+  const isAdmin = await canEditMarketing(supabase)
 
   const months = monthOptions()
   const month = parseMonthParam(searchParams?.month, months)

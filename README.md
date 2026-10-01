@@ -183,8 +183,9 @@ To make these editable by admins without a code deploy, connect Supabase:
 ## Marketing tab (`/marketing`)
 
 Email, LinkedIn and website results by month, from September 2026. Same login
-as the rest of the dashboard: everyone signed in can view it, only the admin
-(`public.is_admin()`) can change the numbers.
+as the rest of the dashboard: everyone signed in can view it. The admin and
+the marketing editors (`public.mkt_editor`, see `0008_marketing_editors.sql`)
+can change the numbers; editors get no access to targets or KPI settings.
 
 - **Email:** Mailchimp campaign reports (`/3.0/reports`, sent since 1 Sep 2026).
   Replies and enquiries are typed in; the sync never writes those two columns
